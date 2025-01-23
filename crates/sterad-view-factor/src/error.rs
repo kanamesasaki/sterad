@@ -6,6 +6,9 @@ pub enum ViewFactorError {
         param_name: &'static str,
         message: String,
     },
+    RuntimeError {
+        message: String,
+    },
 }
 
 impl fmt::Display for ViewFactorError {
@@ -20,6 +23,9 @@ impl fmt::Display for ViewFactorError {
                     "Invalid input for parameter '{}': {}",
                     param_name, message
                 )
+            }
+            ViewFactorError::RuntimeError { message } => {
+                write!(f, "Runtime error: {}", message)
             }
         }
     }
