@@ -7,14 +7,14 @@ The main goal is to provide reliable, performant, and modular functionalities fo
 
 The **sterad** repository hosts multiple Rust crates, each specializing in different aspects of calculating solid angles, radiation view factors, and numerical (ray-tracing) solutions:
 
-1. [sterad-numerical](./crates/sterad-numerical)  
-   Ray-tracing and numerical methods for calculating solid angles, view factors, or other geometric measures.
+1. [sterad-view-factor](./crates/sterad-view-factor)  
+   Analytical and semi-analytical computations of radiation view factors between surfaces.
 
 2. [sterad-solid-angle](./crates/sterad-solid-angle)
    Analytical computations of solid angles for various geometries.
 
-3. [sterad-view-factor](./crates/sterad-view-factor)  
-   Analytical and semi-analytical computations of radiation view factors between surfaces.
+3. [sterad-numerical](./crates/sterad-numerical)  
+   Ray-tracing and numerical methods for calculating solid angles, view factors, or other geometric measures.
 
 ## Features
 
@@ -30,9 +30,34 @@ Each crate can be included in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sterad-numerical = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-numerical" }
-sterad-solid-angle = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-solid-angle" }
 sterad-view-factor = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-view-factor" }
+sterad-solid-angle = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-solid-angle" }
+sterad-numerical = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-numerical" }
+```
+
+## Usage
+
+Here are some examples of how to use the crates:
+
+```rust
+// Example for sterad-view-factor
+use sterad_view_factor::diff_element_to_disk;
+
+let h: f64 = 2.0;
+let r: f64 = 1.0;
+let vf: f64 = diff_element_to_disk::parallel_center(h, r).unwrap();
+assert!((vf - 0.2).abs() < 1e-10);
+```
+
+```rust
+// Example for sterad-solid-angle
+use sterad_solid_angle::point_to_disk;
+use std::f64::consts::PI;
+
+let h = 4.0;
+let r = 3.0;
+let result = point_to_disk::center(h, r).unwrap();
+assert!((result - 0.4 * PI).abs() < 1e-10);
 ```
 
 ## Contributing
