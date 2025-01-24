@@ -20,10 +20,11 @@ use std::f64::consts::PI;
 ///
 /// ```
 /// use sterad_view_factor::diff_element_to_disk;
+/// 
 /// let h: f64 = 2.0;
 /// let r: f64 = 1.0;
 /// let vf: f64 = diff_element_to_disk::parallel_center(h, r).unwrap();
-/// assert!((vf - 0.2).abs() < 1e-8);
+/// assert!((vf - 0.2).abs() < 1e-10);
 /// ```
 pub fn parallel_center(h: f64, r: f64) -> Result<f64, ViewFactorError> {
     if h <= 0.0 {

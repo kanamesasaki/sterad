@@ -76,9 +76,9 @@ pub fn corner(h: f64, a: f64, b: f64) -> Result<f64, SolidAngleError> {
 ///
 /// * `h` is less than or equal to 0.
 /// * `x1` is less than 0.
-/// * `x2` is less than or equal to x1.
+/// * `x2` is less than or equal to `x1`.
 /// * `y1` is less than 0.
-/// * `y2` is less than or equal to y1.
+/// * `y2` is less than or equal to `y1`.
 ///
 /// # Examples
 ///
