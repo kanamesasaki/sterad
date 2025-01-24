@@ -5,6 +5,8 @@ members = [
     "crates/sterad-numerical"
 ]
 
+resolver = "2"
+
 [workspace.package]
 description = "Library for calculating radiation view factors and solid angles in various geometrical configurations."
 license = "MIT"
