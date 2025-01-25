@@ -1,6 +1,6 @@
 use crate::diff_element_to_disk;
 use crate::error::ViewFactorError;
-use nalgebra::{Matrix3, Vector3};
+use crate::vecmath::{Matrix3f, Vector3f};
 use std::f64::consts::PI;
 
 /// B-18: Planar element to elliptical plate in plane parallel to element. Normal to element passes through center of plate.
@@ -382,15 +382,17 @@ fn integral_sinx(x0: f64, x1: f64, a2: f64) -> Result<f64, ViewFactorError> {
 ///
 /// ```
 /// use sterad_view_factor::diff_element_to_ellipse;
-/// let a = 1.0;
+/// use std::f64::consts::PI;
+///
+/// let a = 2.0;
 /// let b = 1.0;
-/// let xc = 0.0;
-/// let yc = 0.0;
+/// let xc = 1.0;
+/// let yc = 1.0;
 /// let zc = 2.0;
-/// let theta = 0.0;
-/// let phi = 0.3;
-/// let result = diff_element_to_ellipse::tilted_offset(a, b, xc, yc, zc, theta, phi);
-/// assert!((result.unwrap() - 0.2).abs() < 1e-8);
+/// let theta = PI / 6.0;
+/// let phi = PI / 6.0;
+/// let result = diff_element_to_ellipse::tilted_offset(a, b, xc, yc, zc, theta, phi).unwrap();
+/// assert!((result - 0.223576).abs() < 1e-6);
 /// ```
 pub fn tilted_offset(
     a: f64,
@@ -413,11 +415,21 @@ pub fn tilted_offset(
             message: "b must be greater than 0".to_string(),
         });
     }
+    if zc <= 0.0 {
+        return Err(ViewFactorError::InvalidInput {
+            param_name: "zc",
+            message: "zc must be greater than 0".to_string(),
+        });
+    }
     if !(0.0..=PI).contains(&theta) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "theta",
             message: "theta must be between 0 and PI".to_string(),
         });
+    }
+
+    if xc == 0.0 && yc == 0.0 {
+        return tilted_center(zc, a, b, theta, phi);
     }
 
     let a2 = a * a;
@@ -434,7 +446,7 @@ pub fn tilted_offset(
     let q = param_c - param_a * param_b / 3.0 + 2.0 * param_a.powi(3) / 27.0;
 
     let discriminant = -4.0 * p.powi(3) - 27.0 * q.powi(2);
-    if discriminant <= 0.0 {
+    if discriminant < 0.0 {
         return Err(ViewFactorError::RuntimeError {
             message: "Discriminant has to be larger than zero.".to_string(),
         });
@@ -445,28 +457,28 @@ pub fn tilted_offset(
     let lambda_2 = 2.0 * (-p / 3.0).sqrt() * (acos_triple + 2.0 * PI / 3.0).cos() - param_a / 3.0;
     let lambda_3 = 2.0 * (-p / 3.0).sqrt() * (acos_triple + 4.0 * PI / 3.0).cos() - param_a / 3.0;
 
-    let n2: Vector3<f64> = Vector3::new(
+    let n2: Vector3f = Vector3f::new(
         -xc * zc / a2 * (lambda_2 - zc2 / b2),
         -yc * zc / b2 * (lambda_2 - zc2 / a2),
-        (lambda_2 - zc2 / b2) * (lambda_2 - zc2 / a2),
+        (lambda_2 - zc2 / a2) * (lambda_2 - zc2 / b2),
     );
-    let n3: Vector3<f64> = Vector3::new(
+    let n3: Vector3f = Vector3f::new(
         -xc * zc / a2 * (lambda_3 - zc2 / b2),
         -yc * zc / b2 * (lambda_3 - zc2 / a2),
-        (lambda_3 - zc2 / b2) * (lambda_3 - zc2 / a2),
+        (lambda_3 - zc2 / a2) * (lambda_3 - zc2 / b2),
     );
 
-    let nz: Vector3<f64> = n2.normalize();
-    let nx: Vector3<f64> = n3.normalize();
-    let ny: Vector3<f64> = nz.cross(&nx);
-    let m_trans: Matrix3<f64> = Matrix3::from_columns(&[nx, ny, nz]);
+    let nz: Vector3f = n2.normalize();
+    let nx: Vector3f = n3.normalize();
+    let ny: Vector3f = nz.cross(&nx);
+    let m_trans: Matrix3f = Matrix3f::from_rows(&nx, &ny, &nz);
 
-    let v: Vector3<f64> = Vector3::new(
+    let v: Vector3f = Vector3f::new(
         theta.sin() * phi.cos(),
         theta.sin() * phi.sin(),
         theta.cos(),
     );
-    let v_new: Vector3<f64> = m_trans * v;
+    let v_new: Vector3f = m_trans.mul_vector(&v);
     let theta_new = v_new.z.acos();
     let phi_new = v_new.y.atan2(v_new.x);
     let a_new = (-lambda_2 / lambda_3).sqrt();
