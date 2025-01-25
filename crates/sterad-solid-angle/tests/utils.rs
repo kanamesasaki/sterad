@@ -53,7 +53,7 @@ pub fn point_to_ellipse_numerical(
             let plate_to_mesh_z = zc / s;
             let cos_theta = plate_to_mesh_z;
             let omega_mesh = dsize * cos_theta / s2;
-            omega += omega_mesh;
+            omega += omega_mesh.max(0.0);
         }
     }
     omega

@@ -23,6 +23,7 @@ use std::f64::consts::PI;
 ///
 /// ```
 /// use sterad_view_factor::diff_element_to_ellipse;
+///
 /// let h = 2.0;
 /// let a = 1.0;
 /// let b = 1.0;
@@ -79,6 +80,7 @@ pub fn parallel_center(h: f64, a: f64, b: f64) -> Result<f64, ViewFactorError> {
 ///
 /// ```
 /// use sterad_view_factor::diff_element_to_ellipse;
+///
 /// let h = 2.0;
 /// let a = 1.0;
 /// let b = 1.0;
@@ -186,7 +188,8 @@ fn tilted_center_partial(
         (x0, y0, -x0, y0)
     } else {
         let param_a = 1.0 / a.powi(2) + phi.cos().powi(2) / (b.powi(2) * phi.sin().powi(2));
-        let param_b = h * theta.cos() * phi.cos() / (b.powi(2) * theta.sin() * phi.sin().powi(2));
+        let param_b =
+            h * theta.cos() * phi.cos() / (b.powi(2) * theta.sin().powi(2) * phi.sin().powi(2));
         let param_c = h.powi(2) * theta.cos().powi(2)
             / (b.powi(2) * theta.sin().powi(2) * phi.sin().powi(2))
             - 1.0;
@@ -197,8 +200,8 @@ fn tilted_center_partial(
         (x0, y0, x1, y1)
     };
 
-    let ang0 = (a * y0).atan2(b * x0);
-    let ang1 = (a * y1).atan2(b * x1);
+    let ang0 = (a * y0).atan2(b * x0); // arctan((a * y0) / (b * x0))
+    let ang1 = (a * y1).atan2(b * x1); // arctan((a * y1) / (b * x1))
 
     let l = theta.sin() * phi.cos();
     let m = theta.sin() * phi.sin();
@@ -209,38 +212,39 @@ fn tilted_center_partial(
         // vf1. ellipse edge: PI -> ang1
         // vf2. straight line: p1 -> p0
         // vf3. ellipse edge: ang0 -> -PI
-        let a2 = (a.powi(2) - b.powi(2)) / (a.powi(2) + h.powi(2));
-        let vf1 = l * h * b / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_cosx(PI, ang1, a2)?
-            + m * h * a / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_sinx(PI, ang1, a2)?
-            - n * a * b / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_1(PI, ang1, a2)?;
+        let ah2 = a.powi(2) + h.powi(2);
+        let a2 = (a.powi(2) - b.powi(2)) / ah2;
+        let vf1 = l * h * b / (2.0 * PI * ah2) * integral_cosx(PI, ang1, a2)?
+            + m * h * a / (2.0 * PI * ah2) * integral_sinx(PI, ang1, a2)?
+            - n * a * b / (2.0 * PI * ah2) * integral_1(PI, ang1, a2)?;
         let param_k = (x0 - x1).powi(2) + (y0 - y1).powi(2);
         let param_l = (x0 - x1) * x1 + (y0 - y1) * y1;
         let param_m = x1.powi(2) + y1.powi(2) + h.powi(2);
         let param_n = l * h * (y0 - y1) - m * h * (x0 - x1) + n * (y1 * x0 - x1 * y0);
-        let vf2 = param_n / (2.0 * PI * (-param_l.powi(2) + param_k * param_m).sqrt())
-            * ((param_k + param_l) / (-param_l.powi(2) + param_k * param_m).sqrt()).atan()
-            - (param_l / (-param_l.powi(2) + param_k * param_m).sqrt()).atan();
-
-        let vf3 = l * h * b / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_cosx(ang0, -PI, a2)?
-            + m * h * a / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_sinx(ang0, -PI, a2)?
-            - n * a * b / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_1(ang0, -PI, a2)?;
+        let l2_km = (-param_l.powi(2) + param_k * param_m).sqrt();
+        let vf2 = param_n / (2.0 * PI * l2_km)
+            * (((param_k + param_l) / l2_km).atan() - (param_l / l2_km).atan());
+        let vf3 = l * h * b / (2.0 * PI * ah2) * integral_cosx(ang0, -PI, a2)?
+            + m * h * a / (2.0 * PI * ah2) * integral_sinx(ang0, -PI, a2)?
+            - n * a * b / (2.0 * PI * ah2) * integral_1(ang0, -PI, a2)?;
 
         vf1 + vf2 + vf3
     } else {
         // line integration sequence:
         // vf1. ellipse edge: ang0 -> ang1
         // vf2. straight line: p1 -> p0
-        let a2 = (a.powi(2) - b.powi(2)) / (a.powi(2) + h.powi(2));
-        let vf1 = l * h * b / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_cosx(ang0, ang1, a2)?
-            + m * h * a / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_sinx(ang0, ang1, a2)?
-            - n * a * b / (2.0 * PI * (a.powi(2) + h.powi(2))) * integral_1(ang0, ang1, a2)?;
+        let ah2 = a.powi(2) + h.powi(2);
+        let a2 = (a.powi(2) - b.powi(2)) / ah2;
+        let vf1 = l * h * b / (2.0 * PI * ah2) * integral_cosx(ang0, ang1, a2)?
+            + m * h * a / (2.0 * PI * ah2) * integral_sinx(ang0, ang1, a2)?
+            - n * a * b / (2.0 * PI * ah2) * integral_1(ang0, ang1, a2)?;
         let param_k = (x0 - x1).powi(2) + (y0 - y1).powi(2);
         let param_l = (x0 - x1) * x1 + (y0 - y1) * y1;
         let param_m = x1.powi(2) + y1.powi(2) + h.powi(2);
         let param_n = l * h * (y0 - y1) - m * h * (x0 - x1) + n * (y1 * x0 - x1 * y0);
-        let vf2 = param_n / (2.0 * PI * (-param_l.powi(2) + param_k * param_m).sqrt())
-            * ((param_k + param_l) / (-param_l.powi(2) + param_k * param_m).sqrt()).atan()
-            - (param_l / (-param_l.powi(2) + param_k * param_m).sqrt()).atan();
+        let l2_km = (-param_l.powi(2) + param_k * param_m).sqrt();
+        let vf2 = param_n / (2.0 * PI * l2_km)
+            * (((param_k + param_l) / l2_km).atan() - (param_l / l2_km).atan());
 
         vf1 + vf2
     };
@@ -335,15 +339,17 @@ fn integral_sinx(x0: f64, x1: f64, a2: f64) -> Result<f64, ViewFactorError> {
     let val0: f64 = if x0 == -PI || x0 == PI {
         0.0
     } else {
-        -1.0 / (a * (1.0 - a2).sqrt()) * ((a - (x0 / 2.0).tan()) / (1.0 - a2).sqrt()).atan()
-            + ((a + (x0 / 2.0).tan()) / (1.0 - a2).sqrt()).atan()
+        -1.0 / (a * (1.0 - a2).sqrt())
+            * (((a - (x0 / 2.0).tan()) / (1.0 - a2).sqrt()).atan()
+                + ((a + (x0 / 2.0).tan()) / (1.0 - a2).sqrt()).atan())
     };
 
     let val1: f64 = if x1 == -PI || x1 == PI {
         0.0
     } else {
-        -1.0 / (a * (1.0 - a2).sqrt()) * ((a - (x1 / 2.0).tan()) / (1.0 - a2).sqrt()).atan()
-            + ((a + (x1 / 2.0).tan()) / (1.0 - a2).sqrt()).atan()
+        -1.0 / (a * (1.0 - a2).sqrt())
+            * (((a - (x1 / 2.0).tan()) / (1.0 - a2).sqrt()).atan()
+                + ((a + (x1 / 2.0).tan()) / (1.0 - a2).sqrt()).atan())
     };
 
     Ok(val1 - val0)
@@ -466,4 +472,48 @@ pub fn tilted_offset(
     let a_new = (-lambda_2 / lambda_3).sqrt();
     let b_new = (-lambda_2 / lambda_1).sqrt();
     tilted_center(1.0, a_new, b_new, theta_new, phi_new)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_integral_sinx() {
+        let result = integral_sinx(0.0, 1.0, 0.25).unwrap();
+        let expected = 0.510888;
+        let tolerance = 1e-5;
+        assert!(
+            (result - expected).abs() < tolerance,
+            "Expected {}, but got {}",
+            expected,
+            result
+        );
+    }
+
+    #[test]
+    fn test_integral_cosx() {
+        let result = integral_cosx(0.0, 1.0, 0.25).unwrap();
+        let expected = 0.89717;
+        let tolerance = 1e-5;
+        assert!(
+            (result - expected).abs() < tolerance,
+            "Expected {}, but got {}",
+            expected,
+            result
+        );
+    }
+
+    #[test]
+    fn test_integral_1() {
+        let result = integral_1(0.0, 1.0, 0.25).unwrap();
+        let expected = 1.07711;
+        let tolerance = 1e-5;
+        assert!(
+            (result - expected).abs() < tolerance,
+            "Expected {}, but got {}",
+            expected,
+            result
+        );
+    }
 }

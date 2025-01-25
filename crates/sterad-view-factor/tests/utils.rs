@@ -66,7 +66,7 @@ pub fn diff_element_to_ellipse_numerical(
                 plate_to_mesh_x * dir_x + plate_to_mesh_y * dir_y + plate_to_mesh_z * dir_z;
             let cos_theta_2 = plate_to_mesh_z;
             let vf_mesh = dsize * cos_theta_1 * cos_theta_2 / (PI * s2);
-            vf += vf_mesh;
+            vf += vf_mesh.max(0.0);
         }
     }
     vf

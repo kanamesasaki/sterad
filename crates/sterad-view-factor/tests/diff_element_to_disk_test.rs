@@ -9,9 +9,9 @@ mod tests {
 
     #[test]
     fn test_diff_element_to_ellipse() {
-        let a = 1.0;
-        let b = 1.0;
-        let theta = PI / 4.0;
+        let a = 2.0;
+        let b = 2.0;
+        let theta = PI / 2.0;
         let phi = 0.0;
         let xc = 0.0;
         let yc = 0.0;
