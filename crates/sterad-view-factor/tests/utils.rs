@@ -71,3 +71,64 @@ pub fn diff_element_to_ellipse_numerical(
     }
     vf
 }
+
+pub fn diff_element_to_ellipsoid_numerical(
+    a: f64,
+    b: f64,
+    c: f64,
+    theta: f64,
+    phi: f64,
+    xc: f64,
+    yc: f64,
+    zc: f64,
+    alpha_num: usize,
+    beta_num: usize,
+) -> f64 {
+    let vec_alpha = linspace_middle(0.0, PI, alpha_num);
+    let vec_beta = linspace_middle(0.0, 2.0 * PI, beta_num);
+    let d_alpha = PI / alpha_num as f64;
+    let d_beta = 2.0 * PI / beta_num as f64;
+
+    // direction of the differential plate
+    let plate_x = theta.sin() * phi.cos();
+    let plate_y = theta.sin() * phi.sin();
+    let plate_z = theta.cos();
+
+    let mut vf: f64 = 0.0;
+    for alpha in &vec_alpha {
+        for beta in &vec_beta {
+            // coordinates of each mesh surface
+            let mesh_x = xc + a * alpha.sin() * beta.cos();
+            let mesh_y = yc + b * alpha.sin() * beta.sin();
+            let mesh_z = zc + c * alpha.cos();
+            // normal direction of the mesh surface
+            let dir_x = b * c * alpha.sin() * beta.cos();
+            let dir_y = a * c * alpha.sin() * beta.sin();
+            let dir_z = a * b * alpha.cos();
+
+            let dir_length = ((dir_x).powi(2) + (dir_y).powi(2) + (dir_z).powi(2)).sqrt();
+            let mesh_size = alpha.sin() * dir_length * d_alpha * d_beta;
+            // normalized mesh surface direction
+            let norm_x = dir_x / dir_length;
+            let norm_y = dir_y / dir_length;
+            let norm_z = dir_z / dir_length;
+
+            let mesh_s2 = mesh_x.powi(2) + mesh_y.powi(2) + mesh_z.powi(2);
+            let mesh_s1 = mesh_s2.sqrt();
+            let plate_to_mesh_x = mesh_x / mesh_s1;
+            let plate_to_mesh_y = mesh_y / mesh_s1;
+            let plate_to_mesh_z = mesh_z / mesh_s1;
+
+            let cos_theta_1 =
+                plate_to_mesh_x * plate_x + plate_to_mesh_y * plate_y + plate_to_mesh_z * plate_z;
+            let cos_theta_2 =
+                -plate_to_mesh_x * norm_x - plate_to_mesh_y * norm_y - plate_to_mesh_z * norm_z;
+
+            if cos_theta_1 > 0.0 && cos_theta_2 > 0.0 {
+                vf += mesh_size * cos_theta_1 * cos_theta_2 / (PI * mesh_s2);
+            }
+        }
+    }
+
+    vf
+}
