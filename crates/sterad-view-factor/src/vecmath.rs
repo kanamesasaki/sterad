@@ -1,3 +1,5 @@
+use std::ops::Neg;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector3f {
     pub x: f64,
@@ -36,6 +38,18 @@ impl Vector3f {
             x: self.x / norm,
             y: self.y / norm,
             z: self.z / norm,
+        }
+    }
+}
+
+impl Neg for Vector3f {
+    type Output = Vector3f;
+
+    fn neg(self) -> Vector3f {
+        Vector3f {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
         }
     }
 }
