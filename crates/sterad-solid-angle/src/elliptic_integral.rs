@@ -1,7 +1,7 @@
 use crate::error::SolidAngleError;
 
 /// Calculates Carlson's elliptic integral of the first kind, rf(x, y, z).
-/// rf(x, y, z) = 1/2 * int_{0}^{\infty} dt / sqrt((t+x) * (t+y) * (t+z))
+/// rf(x, y, z) = 1/2 * int_{0}^{infty} dt / sqrt((t+x) * (t+y) * (t+z))
 ///
 /// # Arguments
 ///
@@ -101,8 +101,8 @@ pub fn rf(x: f64, y: f64, z: f64) -> Result<f64, SolidAngleError> {
     Ok(result)
 }
 
-/// Calculates the Legendre form elliptic integral of the first kind, F(φ, k).
-///
+/// Calculates the Legendre form elliptic integral of the first kind, ellf(phi, k).
+/// ellf(phi, k) = int_{0}^{phi} dtheta / sqrt(1 - k^2 sin^2(theta))
 ///
 /// # Arguments
 ///
@@ -111,7 +111,7 @@ pub fn rf(x: f64, y: f64, z: f64) -> Result<f64, SolidAngleError> {
 ///
 /// # Returns
 ///
-/// * `Ok(f64)` - The value of the elliptic integral of the first kind, F(φ, k),
+/// * `Ok(f64)` - The value of the elliptic integral of the first kind, ellf(phi, k),
 ///   as a floating-point number, if the input is valid.
 /// * `Err(SolidAngleError)` - An error if the input `k` is not within the valid range.
 ///
@@ -139,12 +139,46 @@ pub fn ellf(phi: f64, k: f64) -> Result<f64, SolidAngleError> {
     Ok(result)
 }
 
+/// Calculates the complete elliptic integral of the first kind, ellk(k).
+/// ellik(k) = int_{0}^{pi/2} dtheta / sqrt(1 - k^2 sin^2(theta))
+/// This is equivalent to rf(0, 1-k^2, 1).
+///
+/// # Arguments
+///
+/// * `k` - The modulus, a floating-point number between -1 and 1 (inclusive).
+///
+/// # Returns
+///
+/// * `Ok(f64)` - The value of the complete elliptic integral of the first kind, K(k),
+///   as a floating-point number, if the input is valid.
+/// * `Err(SolidAngleError)` - An error if the input `k` is not within the valid range.
+///
+/// # Example
+///
+/// ```
+/// use sterad_solid_angle::elliptic_integral::ellk;
+///
+/// let k2: f64 = 0.5;
+/// let result = ellk(k2.sqrt()).unwrap();
+/// assert!((result - 1.85407).abs() < 1e-5);
+/// ```
+pub fn ellk(k: f64) -> Result<f64, SolidAngleError> {
+    if !(-1.0..=1.0).contains(&k) {
+        return Err(SolidAngleError::InvalidInput {
+            param_name: "k",
+            message: "k must be between -1 and 1".to_string(),
+        });
+    }
+
+    rf(0.0, 1.0 - k.powi(2), 1.0)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_carlson_1st_kind() {
+    fn test_rf() {
         let x = 1.0;
         let y = 2.0;
         let z = 3.0;
@@ -159,13 +193,26 @@ mod tests {
     }
 
     #[test]
-    fn test_legendre_1st_kind() {
+    fn test_ellf() {
         let phi: f64 = 0.3;
         let k2: f64 = 0.8;
         let expected = 0.303652;
         let result = ellf(phi, k2.sqrt()).unwrap();
         assert!(
             (result - expected).abs() < 1e-6,
+            "result: {}, expected: {}",
+            result,
+            expected
+        );
+    }
+
+    #[test]
+    fn test_ellk() {
+        let k2: f64 = 0.5;
+        let expected = 1.85407;
+        let result = ellk(k2.sqrt()).unwrap();
+        assert!(
+            (result - expected).abs() < 1e-5,
             "result: {}, expected: {}",
             result,
             expected
