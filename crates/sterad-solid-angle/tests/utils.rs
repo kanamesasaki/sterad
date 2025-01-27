@@ -5,7 +5,7 @@ fn linspace_middle(start: f64, end: f64, num: usize) -> Vec<f64> {
     (0..num).map(|i| start_middle + i as f64 * step).collect()
 }
 
-/// Calculate the numerical view factor of an ellipse from a differential plate.
+/// Calculate the numerical solid angle of an ellipse from a differential plate.
 /// - the differential plate is located at (0, 0, 0)
 /// - the ellipse is given by: (x-xc)^2/a^2 + (y-yc)^2/b^2 = 1, z = zc
 ///
