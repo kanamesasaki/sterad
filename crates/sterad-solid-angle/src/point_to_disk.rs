@@ -2,7 +2,14 @@ use crate::elliptic_integral::{ellk, ellpic};
 use crate::error::SolidAngleError;
 use std::f64::consts::PI;
 
-/// A point to a circular disk, where the point located on the normal passing through the center of the disk.
+/// C1: A point to a circular disk, where the point located on the normal passing through the center of the disk.
+///
+/// <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+/// $$
+/// \begin{equation}
+/// \Omega = 2\pi \left(1 - \frac{h}{\sqrt{h^2 + r^2}}\right)
+/// \end{equation}
+/// $$
 ///
 /// # Arguments
 ///
@@ -49,15 +56,33 @@ pub fn center(h: f64, r: f64) -> Result<f64, SolidAngleError> {
     Ok(omega)
 }
 
-/// Calculates the solid angle subtended by a disk, where the source point is not on the central axis.
+/// C2: Calculates the solid angle subtended by a disk, where the source point is not on the central axis.
 ///
 /// This function computes the solid angle of a disk with radius `rm`.
 /// The source point is at height `h` above the disk and at a distance `ro` from the disk central axis.
 ///
+/// <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+/// $$
+/// \begin{align}
+/// r_o < r_m: \quad \Omega &= 2\pi - \frac{2h}{R_\mathrm{max}} K(k) + \frac{2L}{R_\mathrm{max}} \frac{r_o - r_m}{r_o + r_m} \Pi(\alpha^2, k) \\\\
+/// r_o = r_m: \quad \Omega &= \pi - \frac{2h}{R_\mathrm{max}} K(k) \\\\
+/// r_o > r_m: \quad \Omega &= - \frac{2h}{R_\mathrm{max}} K(k) + \frac{2L}{R_\mathrm{max}} \frac{r_o - r_m}{r_o + r_m} \Pi(\alpha^2, k)
+/// \end{align}
+/// $$
+/// where:
+/// $$
+/// \begin{gather}
+/// R_\mathrm{max} = \sqrt{h^2 + (r_o + r_m)^2}, \quad \alpha^2 = \frac{4r_o r_m}{(r_o + r_m)^2}, \quad k^2 = \frac{4r_o r_m}{h^2 + (r_o + r_m)^2} \\\\
+/// K(k): \quad \text{Complete elliptic integral of the first kind} \\\\
+/// \Pi(\alpha^2, k): \quad \text{Complete elliptic integral of the third kind}
+/// \end{gather}
+/// $$
+///
+///
 /// # Arguments
-/// * `h` - Height of the source point above the disk
-/// * `rm` - Radius of the disk (must be positive)
-/// * `ro` - Distance between the source point and the disk central axis
+/// * `h` - Height of the source point above the disk, h > 0.
+/// * `rm` - Radius of the disk (must be positive), rm > 0.
+/// * `ro` - Distance between the source point and the disk central axis, ro > 0.
 ///
 /// # Returns
 /// * `Ok(f64)` - Computed solid angle in steradians

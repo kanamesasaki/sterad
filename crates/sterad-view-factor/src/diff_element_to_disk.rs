@@ -1,12 +1,19 @@
 use crate::error::ViewFactorError;
 use std::f64::consts::PI;
 
-/// B-12: Planar element dA1 to circular disk A2 in parallel plane. Normal to element passes through center of disk.
+/// B-12: Planar element dA₁ to circular disk A₂ in parallel plane. Normal to element passes through center of disk.
+///
+/// <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+/// $$
+/// \begin{equation}
+/// F_{d1-2} = \frac{1}{H^2 + 1}, \quad \mathrm{where} \quad H = \frac{h}{r}
+/// \end{equation}
+/// $$
 ///
 /// # Arguments
 ///
-/// * `h` - A floating point number representing the distance between the planar element and the circular disk.
-/// * `r` - A floating point number representing the radius of the circular disk.
+/// * `h` - distance between the planar element and the circular disk, h > 0.
+/// * `r` - radius of the circular disk, r > 0.
 ///
 /// # Returns
 ///
@@ -20,7 +27,7 @@ use std::f64::consts::PI;
 ///
 /// ```
 /// use sterad_view_factor::diff_element_to_disk;
-/// 
+///
 /// let h: f64 = 2.0;
 /// let r: f64 = 1.0;
 /// let vf: f64 = diff_element_to_disk::parallel_center(h, r).unwrap();
@@ -64,13 +71,13 @@ fn tilted_center_full(h: f64, r: f64, theta: f64) -> f64 {
     r.powi(2) / (r.powi(2) + h.powi(2)) * theta.cos()
 }
 
-/// B-13: Differential tilted planar element dA1 to disk A2. Element lies on normal to disk passing through disk center.
+/// B-13: Differential tilted planar element dA₁ to disk A₂. Element lies on normal to disk passing through disk center.
 ///
 /// # Arguments
 ///
-/// * `h` - A floating point number representing the distance between the planar element and the circular disk. Must be greater than 0.
-/// * `r` - A floating point number representing the radius of the circular disk. Must be greater than 0.
-/// * `theta` - A floating point number representing the tilt angle in radians. Must be between 0 and PI.
+/// * `h` - distance between the planar element and the circular disk, h > 0.
+/// * `r` - radius of the circular disk, r > 0.
+/// * `theta` - tilt angle in radians, 0 ≤ θ ≤ π.
 ///
 /// # Returns
 ///
@@ -110,13 +117,21 @@ pub fn tilted_center(h: f64, r: f64, theta: f64) -> Result<f64, ViewFactorError>
     Ok(vf)
 }
 
-/// B-14: Planar element dA1 to a circular disk A2 in a parallel plane. Element is offset from normal to disk center by distance a.
+/// B-14: Planar element dA₁ to a circular disk A₂ in a parallel plane. Element is offset from normal to disk center by distance a.
+///
+/// <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+/// $$
+/// \begin{gather}
+/// F_{d1-2} = \frac{1}{2} \left[1.0 - \frac{Z - 2R^2}{\sqrt{Z^2 - 4R^2}} \right] \\\\
+/// \mathrm{where} \quad H = \frac{h}{r}, ~ R = \frac{r}{a}, ~ Z = 1 + H^2 + R^2
+/// \end{gather}
+/// $$
 ///
 /// # Arguments
 ///
-/// * `h` - A floating point number representing the distance between the planar element and the circular disk.
-/// * `r` - A floating point number representing the radius of the circular disk.
-/// * `offset` - A floating point number representing the distance between the planar element and the normal line passing the center of the circular disk.
+/// * `h` - distance between the planar element and the circular disk, h > 0.
+/// * `r` - radius of the circular disk, r > 0.
+/// * `offset` - distance between the planar element and the normal line passing the center of the circular disk, offset > 0.
 ///
 /// # Returns
 ///
