@@ -1,4 +1,10 @@
-use crate::diff_element_to_sphere;
+// This module implements the view factor calculation from a differential element to a spherical cap.
+// The implementation is based on the paper:
+// "Analytical view factor solutions of a spherical cap from an infinitesimal surface"
+// https://doi.org/10.1016/j.ijheatmasstransfer.2020.120477
+
+#![allow(clippy::too_many_arguments)]
+
 use crate::error::ViewFactorError;
 use crate::vecmath::Vector3f;
 use std::f64::consts::{FRAC_PI_2, PI};
@@ -63,7 +69,6 @@ fn l2(
     gamma: f64,
     psi: f64,
 ) -> Result<f64, ViewFactorError> {
-    // Input validation
     if !(-PI..=PI).contains(&alpha0) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "alpha0",
@@ -438,4 +443,74 @@ fn f21(
         + l2(alpha1, alpha2, omega, d, rs, phi, gamma, psi)?
         + l4(&x1, &x2, omega, gamma)?;
     Ok(vf)
+}
+
+fn intersection0(
+    omega: f64,
+    d: f64,
+    rs: f64,
+    phi: f64,
+    gamma: f64,
+    psi: f64,
+) -> Result<(f64, i32), ViewFactorError> {
+    let cos_phi = phi.cos();
+    let sin_phi = phi.sin();
+    let cos_psi = psi.cos();
+
+    let sin_theta = rs / d;
+    let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
+    let h = d * cos_theta.powi(2);
+    let r = rs * cos_theta;
+
+    let cos_beta0 = -cos_psi * sin_phi / cos_theta
+        + (sin_theta - cos_psi * cos_phi) / cos_theta * cos_phi / sin_phi;
+    let beta0 = cos_beta0.acos();
+
+    let (vf, case) = if beta0 <= PI / 2.0 {
+        if gamma < beta0 && gamma > -beta0 {
+            if h * (omega - FRAC_PI_2).tan() >= r * cos_beta0 {
+                (0.0, 6)
+            } else {
+                (f7(omega, d, rs, phi, gamma, psi)?, 7)
+            }
+        } else if PI - beta0 < gamma || gamma < -PI + beta0 {
+            if h * (FRAC_PI_2 - omega).tan() >= r * cos_beta0 {
+                (f5(omega, d, rs, phi, gamma, psi)?, 9)
+            } else {
+                (f4(omega, d, rs, gamma)?, 8)
+            }
+        } else {
+            if h * (omega - FRAC_PI_2).tan() >= r * (gamma.abs() - beta0).cos() {
+                (f4(omega, d, rs, gamma)?, 8)
+            } else if h * (omega - FRAC_PI_2).tan() <= r * (gamma.abs() + beta0).cos() {
+                (f7(omega, d, rs, phi, gamma, psi)?, 7)
+            } else {
+                (f64::NAN, 99)
+            }
+        }
+    } else {
+        if gamma < PI - beta0 && gamma > -PI + beta0 {
+            if h * (omega - FRAC_PI_2).tan() <= r * cos_beta0 {
+                (f7(omega, d, rs, phi, gamma, psi)?, 7)
+            } else {
+                (0.0, 6)
+            }
+        } else if beta0 < gamma || gamma < -beta0 {
+            if h * (FRAC_PI_2 - omega).tan() <= r * cos_beta0 {
+                (f4(omega, d, rs, gamma)?, 8)
+            } else {
+                (f5(omega, d, rs, phi, gamma, psi)?, 9)
+            }
+        } else {
+            if h * (omega - FRAC_PI_2).tan() >= r * (beta0 - gamma.abs()).cos() {
+                (0.0, 6)
+            } else if h * (omega - FRAC_PI_2).tan() <= r * (-beta0 - gamma.abs()).cos() {
+                (f5(omega, d, rs, phi, gamma, psi)?, 9)
+            } else {
+                (f64::NAN, 99)
+            }
+        }
+    };
+
+    Ok((vf, case))
 }

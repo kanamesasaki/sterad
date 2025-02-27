@@ -3,6 +3,7 @@ use crate::error::ViewFactorError;
 use crate::vecmath::{Matrix3f, Vector3f};
 use std::f64::consts::PI;
 
+#[allow(clippy::too_many_arguments)]
 pub fn tilted_offset(
     a: f64,
     b: f64,

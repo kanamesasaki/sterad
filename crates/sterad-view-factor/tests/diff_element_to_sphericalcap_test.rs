@@ -1,6 +1,7 @@
 use std::f64::consts::PI;
 use sterad_view_factor::error::ViewFactorError;
 
+#[allow(clippy::too_many_arguments)]
 fn diff_element_to_sphericalcap_numerical(
     omega: f64,
     d: f64,
@@ -11,7 +12,7 @@ fn diff_element_to_sphericalcap_numerical(
     eta_steps: usize,
     lambda_steps: usize,
 ) -> Result<f64, ViewFactorError> {
-    if omega < 0.0 || omega > PI {
+    if !(0.0..=PI).contains(&omega) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "omega",
             message: "omega has to be 0 <= omega <= pi".to_string(),
