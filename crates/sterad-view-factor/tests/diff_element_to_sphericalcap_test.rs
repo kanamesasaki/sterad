@@ -79,3 +79,33 @@ fn diff_element_to_sphericalcap_numerical(
     }
     Ok(vf)
 }
+
+mod tests {
+    use std::f64::consts::PI;
+    use sterad_view_factor::diff_element_to_sphericalcap;
+
+    #[test]
+    fn test_diff_element_to_sphericalcap() {
+        let omega = PI / 4.0;
+        let d = 2.0;
+        let rs = 1.0;
+        let phi = PI / 4.0;
+        let gamma = 0.0;
+        let psi = PI / 4.0;
+        let eta_num = 10000;
+        let lambda_num = 10000;
+        let vf_ana = diff_element_to_sphericalcap::sphericalcap(rs, d, omega, phi, gamma, psi)
+            .unwrap()
+            .0;
+        let vf_num = super::diff_element_to_sphericalcap_numerical(
+            omega, d, rs, phi, gamma, psi, eta_num, lambda_num,
+        )
+        .unwrap();
+        assert!(
+            (vf_ana - vf_num).abs() < 1e-6,
+            "vf_ana: {}, vf_num: {}",
+            vf_ana,
+            vf_num
+        );
+    }
+}
