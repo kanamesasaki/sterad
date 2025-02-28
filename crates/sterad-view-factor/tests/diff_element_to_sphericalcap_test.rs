@@ -85,27 +85,72 @@ mod tests {
     use sterad_view_factor::diff_element_to_sphericalcap;
 
     #[test]
-    fn test_diff_element_to_sphericalcap() {
-        let omega = PI / 4.0;
+    fn test_diff_element_to_sphericalcap_case1() {
+        let omega = 0.0;
         let d = 2.0;
         let rs = 1.0;
-        let phi = PI / 4.0;
+        let phi = PI / 2.0 + f64::EPSILON;
         let gamma = 0.0;
-        let psi = PI / 4.0;
-        let eta_num = 10000;
-        let lambda_num = 10000;
-        let vf_ana = diff_element_to_sphericalcap::sphericalcap(rs, d, omega, phi, gamma, psi)
-            .unwrap()
-            .0;
-        let vf_num = super::diff_element_to_sphericalcap_numerical(
-            omega, d, rs, phi, gamma, psi, eta_num, lambda_num,
-        )
-        .unwrap();
+        let psi = PI / 6.0;
+        let vf_ana =
+            diff_element_to_sphericalcap::sphericalcap(omega, d, rs, phi, gamma, psi).unwrap();
+        let vf_ref = 0.0;
+        assert_eq!(vf_ana.0, vf_ref);
+        assert_eq!(vf_ana.1, 1);
+    }
+
+    #[test]
+    fn test_diff_element_to_sphericalcap_case2() {
+        let omega = 2.0 / 3.0 * PI + f64::EPSILON;
+        let d = 2.0;
+        let rs = 1.0;
+        let phi = 0.0;
+        let gamma = 0.0;
+        let psi = PI / 2.0;
+        let vf_ana =
+            diff_element_to_sphericalcap::sphericalcap(omega, d, rs, phi, gamma, psi).unwrap();
+        let vf_ref = 0.0;
+        assert_eq!(vf_ana.0, vf_ref);
+        assert_eq!(vf_ana.1, 2);
+    }
+
+    #[test]
+    fn test_diff_element_to_sphericalcap_case3() {
+        let omega = 0.0;
+        let d = 2.0;
+        let rs = 1.0;
+        let phi = 0.0;
+        let gamma = 0.0;
+        let psi = PI / 2.0;
+        let vf_ana =
+            diff_element_to_sphericalcap::sphericalcap(omega, d, rs, phi, gamma, psi).unwrap();
+        let vf_ref = 0.25;
         assert!(
-            (vf_ana - vf_num).abs() < 1e-6,
-            "vf_ana: {}, vf_num: {}",
-            vf_ana,
-            vf_num
+            (vf_ana.0 - vf_ref).abs() < 1e-10,
+            "vf_ana: {}, vf_ref: {}",
+            vf_ana.0,
+            vf_ref
         );
+        assert_eq!(vf_ana.1, 3);
+    }
+
+    #[test]
+    fn test_diff_element_to_sphericalcap_case18() {
+        let omega = 0.0;
+        let d = 2.0;
+        let rs = 1.0;
+        let phi = 0.0;
+        let gamma = 0.0;
+        let psi = PI / 6.0;
+        let vf_ana =
+            diff_element_to_sphericalcap::sphericalcap(omega, d, rs, phi, gamma, psi).unwrap();
+        let vf_ref = 0.25 / (0.25 + (2.0 - f64::sqrt(3.0) / 2.0).powi(2));
+        assert!(
+            (vf_ana.0 - vf_ref).abs() < 1e-10,
+            "vf_ana: {}, vf_ref: {}",
+            vf_ana.0,
+            vf_ref
+        );
+        assert_eq!(vf_ana.1, 18);
     }
 }
