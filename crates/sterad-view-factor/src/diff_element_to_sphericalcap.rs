@@ -677,7 +677,7 @@ fn f4(omega: f64, d: f64, rs: f64, gamma: f64) -> Result<f64, ViewFactorError> {
     let r = rs * cos_theta;
     let h = d * cos_theta.powi(2);
 
-    let cos_beta0 = -h / r * (PI - omega).tan();
+    let cos_beta0 = -h / r * (PI / 2.0 - omega).tan();
     let beta0 = cos_beta0.acos();
 
     let x0 = Vector3f {
