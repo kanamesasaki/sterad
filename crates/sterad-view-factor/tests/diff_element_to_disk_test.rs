@@ -9,8 +9,7 @@ mod tests {
 
     #[test]
     fn test_diff_element_to_ellipse() {
-        let a = 2.0;
-        let b = 2.0;
+        let r = 2.0;
         let theta = PI / 2.0;
         let phi = 0.0;
         let xc = 0.0;
@@ -18,8 +17,15 @@ mod tests {
         let zc = 1.0;
         let a_num = 10000;
         let b_num = 10000;
-        let vf_ana = diff_element_to_disk::tilted_center(zc, a, theta).unwrap();
-        let vf_num = diff_element_to_ellipse_numerical(a, b, theta, phi, xc, yc, zc, a_num, b_num);
+        let vf_ana = diff_element_to_disk::tilted_center(zc, r, theta).unwrap();
+        let vf_ref = -r * zc / (PI * (r.powi(2) + zc.powi(2))) + (r / zc).atan() / PI;
+        let vf_num = diff_element_to_ellipse_numerical(r, r, theta, phi, xc, yc, zc, a_num, b_num);
+        assert!(
+            (vf_ana - vf_ref).abs() < 1e-10,
+            "vf_ana: {}, vf_ref: {}",
+            vf_ana,
+            vf_ref
+        );
         assert!(
             (vf_ana - vf_num).abs() < 1e-6,
             "vf_ana: {}, vf_num: {}",
