@@ -665,19 +665,19 @@ fn sphericalcap_part(
     }
 }
 
-/// Calculates F3 view factor: Full Sphere
+/// Calculates case 3 view factor: Full Sphere
 fn f3(omega: f64, d: f64, rs: f64, gamma: f64) -> f64 {
     l1(PI, -PI, omega, d, rs, gamma)
 }
 
-/// Calculates F4 view factor: Partial Sphere
+/// Calculates case 4 view factor: Partial Sphere
 fn f4(omega: f64, d: f64, rs: f64, gamma: f64) -> Result<f64, ViewFactorError> {
     let sin_theta = rs / d;
     let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
     let r = rs * cos_theta;
     let h = d * cos_theta.powi(2);
 
-    let cos_beta0 = -h / r * (PI / 2.0 - omega).tan();
+    let cos_beta0 = -h / r * (FRAC_PI_2 - omega).tan();
     let beta0 = cos_beta0.acos();
 
     let x0 = Vector3f {
@@ -695,7 +695,7 @@ fn f4(omega: f64, d: f64, rs: f64, gamma: f64) -> Result<f64, ViewFactorError> {
     Ok(vf)
 }
 
-/// Calculates F5 view factor: Full Spherical Cap
+/// Calculates case 5 view factor: Full Spherical Cap
 fn f5(omega: f64, d: f64, rs: f64, phi: f64, gamma: f64, psi: f64) -> Result<f64, ViewFactorError> {
     let sin_theta = rs / d;
     let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
@@ -715,7 +715,7 @@ fn f5(omega: f64, d: f64, rs: f64, phi: f64, gamma: f64, psi: f64) -> Result<f64
     Ok(vf)
 }
 
-/// Calculates F7 view factor: Partial Cap, No Intersection 2
+/// Calculates case 7 view factor: Partial Cap, No Intersection 2
 fn f7(omega: f64, d: f64, rs: f64, phi: f64, gamma: f64, psi: f64) -> Result<f64, ViewFactorError> {
     // return F7 view factor
     let vf5 = f5(omega, d, rs, phi, gamma, psi)?;
@@ -724,7 +724,7 @@ fn f7(omega: f64, d: f64, rs: f64, phi: f64, gamma: f64, psi: f64) -> Result<f64
     Ok(vf5 + vf4 - vf3)
 }
 
-/// Calculates F10 view factor: Partial Cap, One Intersection 1
+/// Calculates case 10 view factor: Partial Cap, One Intersection 1
 fn f10(
     omega: f64,
     d: f64,
@@ -734,7 +734,6 @@ fn f10(
     psi: f64,
     z2: f64,
 ) -> Result<f64, ViewFactorError> {
-    // return F10 view factor
     let cos_phi = phi.cos();
     let sin_phi = phi.sin();
     let cos_omega = omega.cos();
@@ -767,7 +766,7 @@ fn f10(
         + (sin_theta - cos_psi * cos_phi) / cos_theta * cos_phi / sin_phi;
     let beta1 = cos_beta1.acos();
 
-    let cos_beta0 = -h / r * (PI / 2.0 - omega).tan();
+    let cos_beta0 = -h / r * (FRAC_PI_2 - omega).tan();
     let beta0 = cos_beta0.acos();
     let x_start = Vector3f {
         x: x2 * h / z2,
@@ -786,6 +785,7 @@ fn f10(
     Ok(vf)
 }
 
+/// Calculates case 12 view factor: Partial Cap, One Intersection 1
 fn f12(
     omega: f64,
     d: f64,
@@ -798,7 +798,6 @@ fn f12(
     alpha1: f64,
     alpha2: f64,
 ) -> Result<f64, ViewFactorError> {
-    // return F12 view factor
     let sin_theta = rs / d;
     let h = d * (1.0 - sin_theta.powi(2));
     let x_start = Vector3f {
@@ -817,6 +816,7 @@ fn f12(
     Ok(vf)
 }
 
+/// Calculates case 13 view factor: Partial Cap, Two Intersections 2
 fn f13(
     omega: f64,
     d: f64,
@@ -834,6 +834,7 @@ fn f13(
     Ok(vf5 - vf12)
 }
 
+/// Calculates case 14 view factor: Partial Cap, Two Intersections 3
 fn f14(
     omega: f64,
     d: f64,
@@ -853,6 +854,7 @@ fn f14(
     Ok(vf4 - (vf3 - vf5 - vf12))
 }
 
+/// Calculates case 15 view factor: Partial Cap, Two Intersections 4
 fn f15(
     omega: f64,
     d: f64,
@@ -870,6 +872,7 @@ fn f15(
     Ok(vf4 - vf12)
 }
 
+/// Calculates case 17 view factor: Small Cap, No Intersection
 fn f17(
     omega: f64,
     d: f64,
@@ -882,6 +885,7 @@ fn f17(
     Ok(vf)
 }
 
+/// Calculates case 18 view factor: Small Cap, No Intersection ϕ = 0
 fn f18(omega: f64, d: f64, rs: f64, gamma: f64, psi: f64) -> Result<f64, ViewFactorError> {
     let cos_psi = psi.cos();
     let sin_psi = psi.sin();
@@ -893,6 +897,7 @@ fn f18(omega: f64, d: f64, rs: f64, gamma: f64, psi: f64) -> Result<f64, ViewFac
     Ok(vf)
 }
 
+/// Calculates case 19 view factor: Small Cap, Two Intersections ϕ = 0
 fn f19(omega: f64, d: f64, rs: f64, gamma: f64, psi: f64) -> Result<f64, ViewFactorError> {
     let cos_psi = psi.cos();
     let sin_psi = psi.sin();
@@ -904,6 +909,7 @@ fn f19(omega: f64, d: f64, rs: f64, gamma: f64, psi: f64) -> Result<f64, ViewFac
     Ok(vf)
 }
 
+/// Calculates case 20 view factor: Small Cap, Two Intersections 1
 fn f20(
     omega: f64,
     d: f64,
@@ -920,6 +926,7 @@ fn f20(
     Ok(vf)
 }
 
+/// Calculates case 21 view factor: Small Cap, Two Intersections 2
 fn f21(
     omega: f64,
     d: f64,
@@ -938,6 +945,7 @@ fn f21(
     Ok(vf)
 }
 
+/// Classify case 6--9, where the spherical cap edge and the view edge do not intersect
 fn intersection0(
     omega: f64,
     d: f64,
@@ -959,7 +967,7 @@ fn intersection0(
         + (sin_theta - cos_psi * cos_phi) / cos_theta * cos_phi / sin_phi;
     let beta0 = cos_beta0.acos();
 
-    let (vf, case) = if beta0 <= PI / 2.0 {
+    let (vf, case) = if beta0 <= FRAC_PI_2 {
         if gamma < beta0 && gamma > -beta0 {
             if h * (omega - FRAC_PI_2).tan() >= r * cos_beta0 {
                 (0.0, 6)
@@ -1008,6 +1016,7 @@ fn intersection0(
     Ok((vf, case))
 }
 
+/// Classify case 10--11, where the spherical cap edge and the view edge have one intersection
 fn intersection1(
     omega: f64,
     d: f64,
@@ -1028,6 +1037,7 @@ fn intersection1(
     Ok((vf, case))
 }
 
+/// Classify case 12--15, where the spherical cap edge and the view edge have two intersections
 fn intersection2(
     omega: f64,
     d: f64,
@@ -1125,6 +1135,7 @@ fn intersection2(
     Ok((vf, case))
 }
 
+/// Classify case 16--21, where the spherical cap is smaller than the visible area from the view point
 fn sphericalcap_small(
     omega: f64,
     d: f64,
@@ -1244,6 +1255,7 @@ fn sphericalcap_small(
     }
 }
 
+/// Classify case 16--18, where the spherical cap edge and the view edge do not intersect
 fn small0(
     omega: f64,
     d: f64,
@@ -1276,6 +1288,7 @@ fn small0(
     Ok((vf, case))
 }
 
+/// Classify case 19--21, where the spherical cap edge and the view edge have two intersections
 fn small2(
     omega: f64,
     d: f64,
