@@ -890,9 +890,9 @@ fn f18(omega: f64, d: f64, rs: f64, gamma: f64, psi: f64) -> Result<f64, ViewFac
     let cos_psi = psi.cos();
     let sin_psi = psi.sin();
 
-    let theta_ = (rs * sin_psi / (d - rs * cos_psi)).atan();
-    let rs_transformed = rs * sin_psi / theta_.cos();
-    let d_transformed = d - rs * cos_psi + rs_transformed * theta_.sin();
+    let theta_transformed = (rs * sin_psi / (d - rs * cos_psi)).atan();
+    let rs_transformed = rs * sin_psi / theta_transformed.cos();
+    let d_transformed = d - rs * cos_psi + rs_transformed * theta_transformed.sin();
     let vf = f3(omega, d_transformed, rs_transformed, gamma);
     Ok(vf)
 }
@@ -902,9 +902,9 @@ fn f19(omega: f64, d: f64, rs: f64, gamma: f64, psi: f64) -> Result<f64, ViewFac
     let cos_psi = psi.cos();
     let sin_psi = psi.sin();
 
-    let theta_ = (rs * sin_psi / (d - rs * cos_psi)).atan();
-    let rs_transformed = rs * sin_psi / theta_.cos();
-    let d_transformed = d - rs * cos_psi + rs_transformed * theta_.sin();
+    let theta_transformed = (rs * sin_psi / (d - rs * cos_psi)).atan();
+    let rs_transformed = rs * sin_psi / theta_transformed.cos();
+    let d_transformed = d - rs * cos_psi + rs_transformed * theta_transformed.sin();
     let vf = f4(omega, d_transformed, rs_transformed, gamma)?;
     Ok(vf)
 }
