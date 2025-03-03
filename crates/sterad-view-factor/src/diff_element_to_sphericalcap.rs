@@ -385,10 +385,10 @@ pub fn sphericalcap(
         });
     }
 
-    if !(0.0..PI).contains(&psi) {
+    if !(0.0..=PI).contains(&psi) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "psi",
-            message: "psi must be between 0 and π (exclusive)".to_string(),
+            message: "psi must be between 0 and π".to_string(),
         });
     }
 
@@ -401,22 +401,49 @@ pub fn sphericalcap(
     }
 
     // For standard half-angle cases (0 < psi <= π/2)
-    if psi <= FRAC_PI_2 {
+    if psi <= f64::EPSILON {
+        Ok((0.0, 0))
+    } else if psi >= PI - f64::EPSILON {
+        // For full sphere
+        let (vf, case) = sphere(omega, d, rs, gamma)?;
+        Ok((vf, 100 + case))
+    } else if psi <= FRAC_PI_2 {
+        // For standard half-angle cases (0 < psi <= π/2)
         sphericalcap_half(omega, d, rs, phi, gamma, psi)
     } else {
         // For extended half-angle cases (π/2 < psi < π)
-        // Calculate the complementary angle (π - psi)
+        let (vf_sphere, _) = sphere(omega, d, rs, gamma)?;
         let psi_complementary = PI - psi;
-
-        // Calculate view factor for the complementary spherical cap
-        let (vf_complementary, case_complementary) =
-            sphericalcap_half(omega, d, rs, phi + PI, gamma, psi_complementary)?;
-
-        // Calculate view factor for a full sphere
-        let vf_sphere = sphere(omega, d, rs, gamma)?;
+        let phi_complementary = PI - phi;
+        let (vf_complementary, case_complementary) = if gamma < 0.0 {
+            sphericalcap_half(
+                omega,
+                d,
+                rs,
+                phi_complementary,
+                gamma + PI,
+                psi_complementary,
+            )?
+        } else {
+            sphericalcap_half(
+                omega,
+                d,
+                rs,
+                phi_complementary,
+                gamma - PI,
+                psi_complementary,
+            )?
+        };
 
         // The view factor is: full sphere minus complementary spherical cap
-        Ok((vf_sphere - vf_complementary, case_complementary))
+        // println!(
+        //     "vf_sphere: {}, vf_complementary: {}, psi_complementary: {}, phi_complementary: {}",
+        //     vf_sphere,
+        //     vf_complementary,
+        //     psi_complementary * 180.0 / PI,
+        //     phi_complementary * 180.0 / PI
+        // );
+        Ok((vf_sphere - vf_complementary, 100 + case_complementary))
     }
 }
 
@@ -433,30 +460,29 @@ pub fn sphericalcap(
 ///
 /// * `Ok(f64)` - The view factor value
 /// * `Err(ViewFactorError)` - If input parameters are invalid
-fn sphere(omega: f64, d: f64, rs: f64, gamma: f64) -> Result<f64, ViewFactorError> {
-    let sin_theta = rs / d;
-
-    if sin_theta >= 1.0 {
+fn sphere(omega: f64, d: f64, rs: f64, gamma: f64) -> Result<(f64, i32), ViewFactorError> {
+    if !(0.0..=PI).contains(&omega) {
         return Err(ViewFactorError::InvalidInput {
-            param_name: "rs, d",
-            message: "rs must be less than d (differential element must be outside the sphere)"
-                .to_string(),
+            param_name: "omega",
+            message: "omega must be between 0 and π".to_string(),
         });
     }
 
+    let sin_theta = rs / d;
     let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
     let theta = cos_theta.acos();
 
-    if omega <= FRAC_PI_2 - theta || (omega + theta - FRAC_PI_2).abs() < f64::EPSILON {
-        // Full sphere is visible
-        Ok(sin_theta.powi(2))
-    } else if omega >= FRAC_PI_2 + theta || (omega - theta - FRAC_PI_2).abs() < f64::EPSILON {
-        // Full sphere is not visible
-        Ok(0.0)
+    if omega >= theta + FRAC_PI_2 - f64::EPSILON {
+        // case 2: surface direction mismatch
+        Ok((0.0, 2))
+    } else if omega <= FRAC_PI_2 - theta + f64::EPSILON {
+        // case 3: full sphere
+        let vf = f3(omega, d, rs, gamma);
+        Ok((vf, 3))
     } else {
-        // Partially visible sphere
+        // case 4: partial sphere
         let vf = f4(omega, d, rs, gamma)?;
-        Ok(vf)
+        Ok((vf, 4))
     }
 }
 
@@ -487,6 +513,13 @@ fn sphericalcap_half(
     let sin_theta = rs / d;
     let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
     let theta = cos_theta.acos();
+    // println!(
+    //     "sphericalcap omega: {}, phi: {}, gamma: {}, psi: {}",
+    //     omega * 180.0 / PI,
+    //     phi * 180.0 / PI,
+    //     gamma * 180.0 / PI,
+    //     psi * 180.0 / PI
+    // );
 
     if phi - psi >= FRAC_PI_2 - theta || (phi - psi + theta - FRAC_PI_2).abs() < f64::EPSILON {
         // Case 1: cap orientation mismatch
@@ -556,6 +589,13 @@ fn sphericalcap_part(
     let sin_gamma = gamma.sin();
     let cos_psi = psi.cos();
     // let sin_psi = psi.sin();
+    // println!(
+    //     "part omega: {}, phi: {}, gamma: {}, psi: {}",
+    //     omega * 180.0 / PI,
+    //     phi * 180.0 / PI,
+    //     gamma * 180.0 / PI,
+    //     psi * 180.0 / PI
+    // );
 
     let sin_theta = rs / d;
     let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
@@ -574,7 +614,7 @@ fn sphericalcap_part(
                 / (cos_phi * sin_omega - cos_omega * sin_phi);
             let y2 = rs.powi(2) - x.powi(2) - (z - d).powi(2);
 
-            if y2.abs() < f64::EPSILON {
+            if y2.abs() <= f64::EPSILON {
                 intersection0(omega, d, rs, phi, gamma, psi)
             } else if z <= h && y2 > 0.0 {
                 let w1 = Vector3f { x, y: y2.sqrt(), z };
@@ -589,6 +629,7 @@ fn sphericalcap_part(
             }
         }
     } else if (gamma - PI).abs() < f64::EPSILON || (gamma + PI).abs() < f64::EPSILON {
+        // gamma == PI or gamma == -PI
         if (cos_phi * sin_omega + sin_phi * cos_omega).abs() < f64::EPSILON {
             intersection0(omega, d, rs, phi, gamma, psi)
         } else {
@@ -598,7 +639,7 @@ fn sphericalcap_part(
                 / (cos_phi * sin_omega + cos_omega * sin_phi);
             let y2 = rs.powi(2) - x.powi(2) - (z - d).powi(2);
 
-            if y2.abs() < f64::EPSILON {
+            if y2.abs() <= f64::EPSILON {
                 intersection0(omega, d, rs, phi, gamma, psi)
             } else if z <= h && y2 > 0.0 {
                 let w1 = Vector3f { x, y: y2.sqrt(), z };
@@ -1072,6 +1113,7 @@ fn intersection2(
         z: d - rs * cos_psi * cos_phi - rs * alpha_mid.cos() * sin_psi * sin_phi,
     };
 
+    // orientation of the plate element
     let n1 = Vector3f {
         x: omega.sin() * gamma.cos(),
         y: omega.sin() * gamma.sin(),
