@@ -435,14 +435,6 @@ pub fn sphericalcap(
             )?
         };
 
-        // The view factor is: full sphere minus complementary spherical cap
-        // println!(
-        //     "vf_sphere: {}, vf_complementary: {}, psi_complementary: {}, phi_complementary: {}",
-        //     vf_sphere,
-        //     vf_complementary,
-        //     psi_complementary * 180.0 / PI,
-        //     phi_complementary * 180.0 / PI
-        // );
         Ok((vf_sphere - vf_complementary, 100 + case_complementary))
     }
 }
@@ -513,13 +505,6 @@ fn sphericalcap_half(
     let sin_theta = rs / d;
     let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
     let theta = cos_theta.acos();
-    // println!(
-    //     "sphericalcap omega: {}, phi: {}, gamma: {}, psi: {}",
-    //     omega * 180.0 / PI,
-    //     phi * 180.0 / PI,
-    //     gamma * 180.0 / PI,
-    //     psi * 180.0 / PI
-    // );
 
     if phi - psi >= FRAC_PI_2 - theta || (phi - psi + theta - FRAC_PI_2).abs() < f64::EPSILON {
         // Case 1: cap orientation mismatch
@@ -589,13 +574,6 @@ fn sphericalcap_part(
     let sin_gamma = gamma.sin();
     let cos_psi = psi.cos();
     // let sin_psi = psi.sin();
-    // println!(
-    //     "part omega: {}, phi: {}, gamma: {}, psi: {}",
-    //     omega * 180.0 / PI,
-    //     phi * 180.0 / PI,
-    //     gamma * 180.0 / PI,
-    //     psi * 180.0 / PI
-    // );
 
     let sin_theta = rs / d;
     let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
@@ -604,19 +582,23 @@ fn sphericalcap_part(
     // let r = rs * cos_theta;
 
     if gamma.abs() < f64::EPSILON {
-        // gamma == 0
-        if (cos_phi * sin_omega - sin_phi * cos_omega).abs() < f64::EPSILON {
+        // gamma ≅ 0
+        if (sin_phi * cos_omega - cos_phi * sin_omega).abs() <= f64::EPSILON {
+            // omega - phi ≅ 0 or ±pi, AND gamma ≅ 0
+            // In this case, the view edge does not intersect the cap edge
+            // To avoid zero division, this case is handled separately
             intersection0(omega, d, rs, phi, gamma, psi)
         } else {
-            let z = (-rs * cos_psi + d * cos_phi) * sin_omega
-                / (cos_phi * sin_omega - cos_omega * sin_phi);
-            let x = (rs * cos_psi - d * cos_phi) * cos_omega
-                / (cos_phi * sin_omega - cos_omega * sin_phi);
+            let x = cos_omega * (d * cos_phi - rs * cos_psi)
+                / (sin_phi * cos_omega - cos_phi * sin_omega);
+            let z = -sin_omega * (d * cos_phi - rs * cos_psi)
+                / (sin_phi * cos_omega - cos_phi * sin_omega);
             let y2 = rs.powi(2) - x.powi(2) - (z - d).powi(2);
 
             if y2.abs() <= f64::EPSILON {
                 intersection0(omega, d, rs, phi, gamma, psi)
-            } else if z <= h && y2 > 0.0 {
+            } else if z <= h + f64::EPSILON && y2 > 0.0 {
+                // If the intersections are on the edge of the view (including the floating point error), the case is considered as intersection 2
                 let w1 = Vector3f { x, y: y2.sqrt(), z };
                 let w2 = Vector3f {
                     x,
@@ -625,23 +607,28 @@ fn sphericalcap_part(
                 };
                 intersection2(omega, d, rs, phi, gamma, psi, w1, w2)
             } else {
+                // intersections are behind the visible surface
                 intersection0(omega, d, rs, phi, gamma, psi)
             }
         }
     } else if (gamma - PI).abs() < f64::EPSILON || (gamma + PI).abs() < f64::EPSILON {
-        // gamma == PI or gamma == -PI
-        if (cos_phi * sin_omega + sin_phi * cos_omega).abs() < f64::EPSILON {
+        // gamma ≅ ±pi
+        if (sin_phi * cos_omega + cos_phi * sin_omega).abs() <= f64::EPSILON {
+            // omega + phi ≅ 0 or ±pi, AND gamma ≅ ±pi
+            // In this case, the view edge does not intersect the cap edge
+            // To avoid zero division, this case is handled separately
             intersection0(omega, d, rs, phi, gamma, psi)
         } else {
-            let z = (-rs * cos_psi + d * cos_phi) * sin_omega
-                / (cos_phi * sin_omega + cos_omega * sin_phi);
-            let x = (-rs * cos_psi + d * cos_phi) * cos_omega
-                / (cos_phi * sin_omega + cos_omega * sin_phi);
+            let x = cos_omega * (d * cos_phi - rs * cos_psi)
+                / (sin_phi * cos_omega + cos_phi * sin_omega);
+            let z = sin_omega * (d * cos_phi - rs * cos_psi)
+                / (sin_phi * cos_omega + cos_phi * sin_omega);
             let y2 = rs.powi(2) - x.powi(2) - (z - d).powi(2);
 
             if y2.abs() <= f64::EPSILON {
                 intersection0(omega, d, rs, phi, gamma, psi)
-            } else if z <= h && y2 > 0.0 {
+            } else if z <= h + f64::EPSILON && y2 > 0.0 {
+                // If the intersections are on the edge of the view (including the floating point error), the case is considered as intersection 2
                 let w1 = Vector3f { x, y: y2.sqrt(), z };
                 let w2 = Vector3f {
                     x,
@@ -650,6 +637,7 @@ fn sphericalcap_part(
                 };
                 intersection2(omega, d, rs, phi, gamma, psi, w1, w2)
             } else {
+                // intersections are behind the visible surface
                 intersection0(omega, d, rs, phi, gamma, psi)
             }
         }
@@ -673,7 +661,7 @@ fn sphericalcap_part(
 
         let discriminant = b.powi(2) - a * c;
 
-        if discriminant <= 0.0 || discriminant.abs() < f64::EPSILON {
+        if discriminant <= 0.0 || discriminant.abs() <= f64::EPSILON {
             intersection0(omega, d, rs, phi, gamma, psi)
         } else {
             let zp = (-b + discriminant.sqrt()) / a;
@@ -695,7 +683,6 @@ fn sphericalcap_part(
                     y: ym,
                     z: zm,
                 };
-
                 intersection2(omega, d, rs, phi, gamma, psi, w1, w2)
             } else if zp > h && zm > h {
                 intersection0(omega, d, rs, phi, gamma, psi)
@@ -1106,22 +1093,33 @@ fn intersection2(
         (x2.y / (rs * sin_psi)).atan2((x2.x + rs * cos_psi * sin_phi) / (rs * sin_psi * cos_phi))
     };
 
-    let alpha_mid = 0.5 * (alpha2 + alpha1);
-    let vec = Vector3f {
-        x: -rs * cos_psi * sin_phi + rs * alpha_mid.cos() * sin_psi * cos_phi,
-        y: rs * alpha_mid.sin() * sin_psi,
-        z: d - rs * cos_psi * cos_phi - rs * alpha_mid.cos() * sin_psi * sin_phi,
-    };
+    // classification criteria according to the paper
+    // this criteria is not wrong, but it causes error when the intersections are near tangent
+    // vec.dot(n1) > 0.0 -> case 12, case 15
+    // vec.dot(n1) < 0.0 -> case 13, case 14
 
-    // orientation of the plate element
-    let n1 = Vector3f {
-        x: omega.sin() * gamma.cos(),
-        y: omega.sin() * gamma.sin(),
-        z: omega.cos(),
-    };
+    // let alpha_mid = 0.5 * (alpha2 + alpha1);
+    // let drs = d / rs;
+    // let vec = Vector3f {
+    //     x: -cos_psi * sin_phi + alpha_mid.cos() * sin_psi * cos_phi,
+    //     y: alpha_mid.sin() * sin_psi,
+    //     z: drs - cos_psi * cos_phi - alpha_mid.cos() * sin_psi * sin_phi,
+    // };
+
+    // // orientation of the plate element
+    // let n1 = Vector3f {
+    //     x: omega.sin() * gamma.cos(),
+    //     y: omega.sin() * gamma.sin(),
+    //     z: omega.cos(),
+    // };
+
+    let sin_theta = rs / d;
+    let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
+    let cos_beta1 = -cos_psi * sin_phi / cos_theta
+        + (sin_theta - cos_psi * cos_phi) / cos_theta * cos_phi / sin_phi;
 
     let (vf, case) = if d * cos_phi >= rs * cos_psi {
-        if vec.dot(&n1) > 0.0 {
+        if gamma.cos() > cos_beta1 {
             if alpha1 > alpha2 {
                 (
                     f12(omega, d, rs, phi, gamma, psi, x1, x2, alpha1, alpha2)?,
@@ -1147,7 +1145,7 @@ fn intersection2(
             }
         }
     } else {
-        if vec.dot(&n1) > 0.0 {
+        if gamma.cos() < cos_beta1 {
             if alpha1 < alpha2 {
                 (
                     f15(omega, d, rs, phi, gamma, psi, x1, x2, alpha1, alpha2)?,

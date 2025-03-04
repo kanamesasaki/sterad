@@ -612,16 +612,16 @@ mod tests {
         // rs    d	omega	phi	gamma	psi
         // 1	1.1	90	    15	-180	15  -> solved
         // 1	1.1	90	    15	180	    15  -> solved
-        // 1	2	90	    135	-135	150
-        // 1	2	90	    135	135	    150
-        // 1	2	105	    75	0	    105
+        // 1	2	90	    135	-135	150 -> solved
+        // 1	2	90	    135	135	    150 -> solved
+        // 1	2	105	    75	0	    105 -> solved
 
         let d = 2.0;
         let rs = 1.0;
-        let omega = PI * 90.0 / 180.0;
-        let phi = PI * 135.0 / 180.0;
-        let gamma = -PI * 135.0 / 180.0;
-        let psi = PI * 150.0 / 180.0;
+        let omega = PI * 105.0 / 180.0;
+        let phi = PI * 75.0 / 180.0;
+        let gamma = 0.0;
+        let psi = PI * 105.0 / 180.0;
         let vf_ana =
             diff_element_to_sphericalcap::sphericalcap(omega, d, rs, phi, gamma, psi).unwrap();
         let vf_num = super::diff_element_to_sphericalcap_numerical(
@@ -647,7 +647,7 @@ mod tests {
 
         // test parameter sets
         let omega_values: Vec<f64> = (0..=12).map(|i| i as f64 * PI * 15.0 / 180.0).collect();
-        let d: f64 = 1.1;
+        let d: f64 = 2.0;
         let rs: f64 = 1.0;
         let phi_values: Vec<f64> = (0..=12).map(|i| i as f64 * PI * 15.0 / 180.0).collect();
         let gamma_values: Vec<f64> = (-12..=12).map(|i| i as f64 * PI * 15.0 / 180.0).collect();
@@ -662,7 +662,7 @@ mod tests {
         // write header
         writeln!(
             file,
-            "rs,d,omega,phi,gamma,psi,vf_ana,vf_num,case_num,error"
+            "rs,d,omega,phi,gamma,psi,case_num,vf_ana,vf_num,error"
         )
         .expect("Failed to write header to the csv file");
 
@@ -694,8 +694,8 @@ mod tests {
                 phi * 180.0 / PI,
                 gamma * 180.0 / PI,
                 psi * 180.0 / PI,
-                vf_ana.0,
                 vf_ana.1,
+                vf_ana.0,
                 vf_num,
                 error
             )
