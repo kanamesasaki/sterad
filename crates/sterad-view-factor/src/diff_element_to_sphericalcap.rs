@@ -12,6 +12,8 @@ use crate::error::ViewFactorError;
 use crate::vecmath::Vector3f;
 use std::f64::consts::{FRAC_PI_2, PI};
 
+const TOLERANCE: f64 = 1.0e-14;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Case Description
 ///////////////////////////////////////////////////////////////////////////////
@@ -401,12 +403,12 @@ pub fn sphericalcap(
     }
 
     // For standard half-angle cases (0 < psi <= π/2)
-    if psi <= f64::EPSILON {
+    if psi <= TOLERANCE {
         Ok((0.0, 0))
-    } else if psi >= PI - f64::EPSILON {
+    } else if psi >= PI - TOLERANCE || psi - phi >= (rs / d).acos() - TOLERANCE {
         // For full sphere
         let (vf, case) = sphere(omega, d, rs, gamma)?;
-        Ok((vf, 100 + case))
+        Ok((vf, case))
     } else if psi <= FRAC_PI_2 {
         // For standard half-angle cases (0 < psi <= π/2)
         sphericalcap_half(omega, d, rs, phi, gamma, psi)
@@ -1094,32 +1096,39 @@ fn intersection2(
     };
 
     // classification criteria according to the paper
-    // this criteria is not wrong, but it causes error when the intersections are near tangent
-    // vec.dot(n1) > 0.0 -> case 12, case 15
-    // vec.dot(n1) < 0.0 -> case 13, case 14
+    // vec.dot(&n1) > 0.0 -> case 12, case 15
+    // vec.dot(&n1) < 0.0 -> case 13, case 14
+    // This criteria is correct, but it may cause floating point error
+    // if vec.dot(&n1) ≅ 0.0, the following criteria is used
+    // top.dot(&n1) < 0.0 -> case 12, case 14
+    // top.dot(&n1) > 0.0 -> case 13, case 15
 
-    // let alpha_mid = 0.5 * (alpha2 + alpha1);
-    // let drs = d / rs;
-    // let vec = Vector3f {
-    //     x: -cos_psi * sin_phi + alpha_mid.cos() * sin_psi * cos_phi,
-    //     y: alpha_mid.sin() * sin_psi,
-    //     z: drs - cos_psi * cos_phi - alpha_mid.cos() * sin_psi * sin_phi,
-    // };
+    let alpha_mid = 0.5 * (alpha2 + alpha1);
+    let drs = d / rs;
+    let vec = Vector3f {
+        x: -cos_psi * sin_phi + alpha_mid.cos() * sin_psi * cos_phi,
+        y: alpha_mid.sin() * sin_psi,
+        z: drs - cos_psi * cos_phi - alpha_mid.cos() * sin_psi * sin_phi,
+    };
 
-    // // orientation of the plate element
-    // let n1 = Vector3f {
-    //     x: omega.sin() * gamma.cos(),
-    //     y: omega.sin() * gamma.sin(),
-    //     z: omega.cos(),
-    // };
+    // orientation of the plate element
+    let n1 = Vector3f {
+        x: omega.sin() * gamma.cos(),
+        y: omega.sin() * gamma.sin(),
+        z: omega.cos(),
+    };
 
-    let sin_theta = rs / d;
-    let cos_theta = (1.0 - sin_theta.powi(2)).sqrt();
-    let cos_beta1 = -cos_psi * sin_phi / cos_theta
-        + (sin_theta - cos_psi * cos_phi) / cos_theta * cos_phi / sin_phi;
+    // top of the spherical cap
+    let top: Vector3f = Vector3f {
+        x: -sin_phi,
+        y: 0.0,
+        z: cos_phi,
+    };
 
     let (vf, case) = if d * cos_phi >= rs * cos_psi {
-        if gamma.cos() > cos_beta1 {
+        if vec.dot(&n1) > 0.0 + f64::EPSILON || {
+            vec.dot(&n1).abs() <= f64::EPSILON && top.dot(&n1) < 0.0
+        } {
             if alpha1 > alpha2 {
                 (
                     f12(omega, d, rs, phi, gamma, psi, x1, x2, alpha1, alpha2)?,
@@ -1145,7 +1154,9 @@ fn intersection2(
             }
         }
     } else {
-        if gamma.cos() < cos_beta1 {
+        if vec.dot(&n1) > f64::EPSILON || {
+            vec.dot(&n1).abs() <= f64::EPSILON && top.dot(&n1) > 0.0
+        } {
             if alpha1 < alpha2 {
                 (
                     f15(omega, d, rs, phi, gamma, psi, x1, x2, alpha1, alpha2)?,
