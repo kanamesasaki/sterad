@@ -13,8 +13,8 @@ The **sterad** repository hosts multiple Rust crates, each specializing in diffe
 2. [sterad-solid-angle](./crates/sterad-solid-angle)
    Analytical computations of solid angles for various geometries.
 
-3. [sterad-numerical](./crates/sterad-numerical)  
-   Ray-tracing and numerical methods for calculating solid angles, view factors, or other geometric measures.
+3. [sterad-ray-tracing](./crates/sterad-ray-tracing)  
+   Calculating solid angles and view factors based on ray-tracing
 
 ## Features
 
@@ -32,7 +32,7 @@ Each crate can be included in your `Cargo.toml`:
 [dependencies]
 sterad-view-factor = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-view-factor" }
 sterad-solid-angle = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-solid-angle" }
-sterad-numerical = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-numerical" }
+sterad-ray-tracing = { git = "https://github.com/kanamesasaki/sterad", package = "sterad-ray-tracing" }
 ```
 
 ## Usage

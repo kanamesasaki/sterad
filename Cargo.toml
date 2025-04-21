@@ -2,7 +2,7 @@
 members = [
     "crates/sterad-solid-angle",
     "crates/sterad-view-factor",
-    "crates/sterad-numerical"
+    "crates/sterad-ray-tracing"
 ]
 
 resolver = "2"
