@@ -3,5 +3,9 @@ name = "sterad-ray-tracing"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []  # デフォルトでは何も有効化しない
+double_precision = []  # 倍精度浮動小数点演算のフィーチャー
+
 [dependencies]
 rand = "0.9.1"

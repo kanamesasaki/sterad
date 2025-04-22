@@ -1,7 +1,5 @@
 use crate::error::NumericalError;
-use crate::float::{float::PI, Float};
-use crate::ray::{QuadricIntersection, Ray};
-use crate::transform::Transform;
+use crate::float::Float;
 use crate::vecmath::{Point3f, Vector3f};
 
 #[derive(Debug, Copy, Clone, PartialEq)]

@@ -82,7 +82,7 @@ mod tests {
         };
 
         let vf: Float = vf_calc.plate_element_to_disk(&plate, &disk)?;
-        let expected: Float = 0.7236067977499789;
+        let expected: Float = 0.7236068;
         let tolerance: Float = 0.0001;
         assert!(
             (vf - expected).abs() < tolerance,

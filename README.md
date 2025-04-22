@@ -14,7 +14,7 @@ The **sterad** repository hosts multiple Rust crates, each specializing in diffe
    Analytical computations of solid angles for various geometries.
 
 3. [sterad-ray-tracing](./crates/sterad-ray-tracing)  
-   Calculating solid angles and view factors based on ray-tracing
+   Calculating solid angles and view factors based on ray-tracing. In this crate, f32 is used by default. To use f64, the following option should be used: cargo build --features double_precision
 
 ## Features
 
