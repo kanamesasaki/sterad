@@ -22,7 +22,7 @@ impl Default for Rectangle {
 }
 
 impl Rectangle {
-    fn random_point(&self, rand1: Float, rand2: Float) -> Result<Point3f, NumericalError> {
+    fn sample(&self, rand1: Float, rand2: Float) -> Result<Point3f, NumericalError> {
         let p_local: Point3f = Point3f {
             x: self.x_max * rand1,
             y: self.y_max * rand2,
@@ -45,7 +45,7 @@ impl Rectangle {
     }
 
     pub fn spawn_ray(&self, rand1: Float, rand2: Float) -> Result<Ray, NumericalError> {
-        let p: Point3f = self.random_point(rand1, rand2)?;
+        let p: Point3f = self.sample(rand1, rand2)?;
         let n: Vector3f = self.random_vector(rand1, rand2)?;
         let ray: Ray = Ray {
             o: p,

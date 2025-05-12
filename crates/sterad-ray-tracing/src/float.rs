@@ -19,6 +19,16 @@ pub mod float {
     #[cfg(not(feature = "double_precision"))]
     pub const PI: Float = std::f32::consts::PI;
 
+    /// Returns the next representable floating-point value greater than `v`.
+    ///
+    /// This function manipulates the binary representation of the floating-point value
+    /// to find the next greater value in the IEEE-754 representation.
+    ///
+    /// # Special Cases
+    ///
+    /// - If `v` is positive infinity, returns positive infinity
+    /// - If `v` is negative zero (-0.0), returns positive zero (0.0)
+    ///
     #[inline]
     pub fn next_float_up(v: Float) -> Float {
         if v.is_infinite() && v > 0.0 {
@@ -36,6 +46,16 @@ pub mod float {
         Float::from_bits(bits)
     }
 
+    /// Returns the next representable floating-point value less than `v`.
+    ///
+    /// This function manipulates the binary representation of the floating-point value
+    /// to find the next smaller value in the IEEE-754 representation.
+    ///
+    /// # Special Cases
+    ///
+    /// - If `v` is negative infinity, returns negative infinity
+    /// - If `v` is positive zero (0.0), returns negative zero (-0.0)
+    ///
     #[inline]
     pub fn next_float_down(v: Float) -> Float {
         if v.is_infinite() && v < 0.0 {

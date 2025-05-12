@@ -1,3 +1,4 @@
+pub mod cylinder;
 pub mod disk;
 pub mod error;
 pub mod float;
