@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f64::consts::{FRAC_PI_2, PI};
 
 // Divide `start` and `end` into `num` equal parts and return the middle points as Vector.
 fn linspace_middle(start: f64, end: f64, num: usize) -> Vec<f64> {
@@ -130,5 +130,87 @@ pub fn diff_element_to_ellipsoid_numerical(
         }
     }
 
+    vf
+}
+
+/// Numerical integration of the spheroid view factor from a plate element.
+///
+/// Spheroid: x²/a² + y²/a² + z²/b² = 1
+/// Plate element position: (x0, y0, z0)
+/// Plate element normal: (cos(theta)cos(phi), cos(theta)sin(phi), sin(theta))
+///
+/// # Arguments
+///   * `a` - spheroid semi-major axis
+///   * `b` - spheroid semi-minor axis
+///   * `x0` - plate element x position
+///   * `y0` - plate element y position
+///   * `z0` - plate element z position
+///   * `theta` - plate element elevation angle
+///   * `phi` - plate element azimuthal angle
+///   * `alpha_num` - number of divisions in the elevation direction
+///   * `beta_num` - number of divisions in the azimuth direction
+///
+/// # Returns
+///   * `Result<f64, ViewFactorError>` - view factor from the plate element
+#[allow(clippy::too_many_arguments)]
+pub fn diff_element_to_spheroid_numerical(
+    a: f64,
+    b: f64,
+    x0: f64,
+    y0: f64,
+    z0: f64,
+    theta: f64,
+    phi: f64,
+    alpha_num: usize,
+    beta_num: usize,
+) -> f64 {
+    let d_alpha = PI / alpha_num as f64;
+    let d_beta = 2.0 * PI / beta_num as f64;
+    let vec_alpha = linspace_middle(-FRAC_PI_2, FRAC_PI_2, alpha_num);
+    let vec_beta = linspace_middle(0.0, 2.0 * PI, beta_num);
+
+    // create a mesh grid (alpha, beta)
+    let mesh = vec_alpha
+        .iter()
+        .flat_map(|alpha| vec_beta.iter().map(move |beta| (alpha, beta)));
+
+    // plate element normal vector
+    let plate_dir_x = theta.cos() * phi.cos();
+    let plate_dir_y = theta.cos() * phi.sin();
+    let plate_dir_z = theta.sin();
+
+    let vf: f64 = mesh
+        .map(|(alpha, beta)| {
+            // coordinates of each mesh surface
+            let mesh_x = a * alpha.cos() * beta.cos();
+            let mesh_y = a * alpha.cos() * beta.sin();
+            let mesh_z = b * alpha.sin();
+
+            // area of the mesh surface
+            let coeff =
+                f64::sqrt(a.powi(2) * alpha.sin().powi(2) + b.powi(2) * alpha.cos().powi(2));
+            let mesh_area = a * alpha.cos() * coeff * d_alpha * d_beta;
+            // normal direction of the mesh surface
+            let dir_x = b * alpha.cos() * beta.cos() / coeff;
+            let dir_y = b * alpha.cos() * beta.sin() / coeff;
+            let dir_z = a * alpha.sin() / coeff;
+            // distance from the plate element to the mesh surface
+            let mesh_s2 = (mesh_x - x0).powi(2) + (mesh_y - y0).powi(2) + (mesh_z - z0).powi(2);
+            let mesh_s1 = mesh_s2.sqrt();
+
+            let cos_theta_1 = ((mesh_x - x0) * plate_dir_x
+                + (mesh_y - y0) * plate_dir_y
+                + (mesh_z - z0) * plate_dir_z)
+                / mesh_s1;
+            let cos_theta_2 =
+                ((x0 - mesh_x) * dir_x + (y0 - mesh_y) * dir_y + (z0 - mesh_z) * dir_z) / mesh_s1;
+            let df = mesh_area * cos_theta_1 * cos_theta_2 / (PI * mesh_s2);
+            if cos_theta_1 > 0.0 && cos_theta_2 > 0.0 {
+                df
+            } else {
+                0.0
+            }
+        })
+        .sum();
     vf
 }

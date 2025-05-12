@@ -4,5 +4,6 @@ pub mod diff_element_to_ellipsoid;
 pub mod diff_element_to_rectangle;
 pub mod diff_element_to_sphere;
 pub mod diff_element_to_sphericalcap;
+pub mod diff_element_to_spheroid;
 pub mod error;
 pub mod vecmath;

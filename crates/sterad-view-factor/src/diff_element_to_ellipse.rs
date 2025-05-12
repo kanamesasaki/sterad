@@ -1,7 +1,7 @@
 use crate::diff_element_to_disk;
 use crate::error::ViewFactorError;
 use crate::vecmath::{Matrix3f, Vector3f};
-use std::f64::consts::PI;
+use std::f64::consts::{FRAC_PI_2, PI};
 
 /// B-18: Planar element to elliptical plate in plane parallel to element. Normal to element passes through center of plate.
 ///
@@ -128,12 +128,12 @@ pub fn tilted_center(h: f64, a: f64, b: f64, theta: f64, phi: f64) -> Result<f64
     let (a, b, mut phi) = if a > b {
         (a, b, phi)
     } else {
-        (b, a, phi + PI / 2.0)
+        (b, a, phi + FRAC_PI_2)
     };
 
     // transform phi to 0 <= phi <= PI/2
     phi %= 2.0 * PI;
-    phi = if phi > PI / 2.0 && phi <= PI {
+    phi = if phi > FRAC_PI_2 && phi <= PI {
         PI - phi
     } else if phi > PI && phi <= PI * 3.0 / 2.0 {
         phi - PI
@@ -165,7 +165,7 @@ fn tilted_center_partial(
     theta: f64,
     phi: f64,
 ) -> Result<f64, ViewFactorError> {
-    if !(0.0..=PI / 2.0).contains(&phi) {
+    if !(0.0..=FRAC_PI_2).contains(&phi) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "phi",
             message: "phi must be between 0 and PI/2".to_string(),
@@ -179,17 +179,19 @@ fn tilted_center_partial(
     }
 
     let (x0, y0, x1, y1) = if (phi - 0.0).abs() < 1e-10 {
+        // phi ≃ 0.0
         let x0 = -h * theta.cos() / theta.sin();
         let y0 = b / a * (a.powi(2) - x0.powi(2)).sqrt();
         (x0, y0, x0, -y0)
-    } else if (phi - PI / 2.0).abs() < 1e-10 {
+    } else if (phi - FRAC_PI_2).abs() < 1e-10 {
+        // phi ≃ PI/2
         let y0 = -h * theta.cos() / theta.sin();
         let x0 = -a / b * (b.powi(2) - y0.powi(2)).sqrt();
         (x0, y0, -x0, y0)
     } else {
+        // 0 < phi < PI/2
         let param_a = 1.0 / a.powi(2) + phi.cos().powi(2) / (b.powi(2) * phi.sin().powi(2));
-        let param_b =
-            h * theta.cos() * phi.cos() / (b.powi(2) * theta.sin().powi(2) * phi.sin().powi(2));
+        let param_b = h * theta.cos() * phi.cos() / (b.powi(2) * theta.sin() * phi.sin().powi(2));
         let param_c = h.powi(2) * theta.cos().powi(2)
             / (b.powi(2) * theta.sin().powi(2) * phi.sin().powi(2))
             - 1.0;
