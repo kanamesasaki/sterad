@@ -27,6 +27,7 @@ fn linspace_middle(start: f64, end: f64, num: usize) -> Vec<f64> {
 ///
 /// * `f64` - The numerical view factor of the ellipse from the differential planar element.
 ///
+#[allow(clippy::too_many_arguments)]
 pub fn diff_element_to_ellipse_numerical(
     a: f64,
     b: f64,
@@ -72,6 +73,7 @@ pub fn diff_element_to_ellipse_numerical(
     vf
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn diff_element_to_ellipsoid_numerical(
     a: f64,
     b: f64,
