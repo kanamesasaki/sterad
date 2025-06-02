@@ -18,8 +18,13 @@ pub fn tilted_offset(
         });
     }
 
-    let x0: f64 = (x0 * x0 + y0 + y0).sqrt();
-    let phi: f64 = phi + y0.atan2(x0);
+    // Shift the plate element to XZ plane
+    let phi: f64 = phi - y0.atan2(x0);
+    let x0: f64 = (x0 * x0 + y0 * y0).sqrt();
+
+    // Shift the plate element to z0 ≥ 0
+    let theta: f64 = if z0 >= 0.0 { theta } else { -theta };
+    let z0: f64 = z0.abs();
 
     let (cos_gamma0, sin_gamma0) = if z0 == 0.0 {
         // Special case when plate element is on the x-y plane
@@ -58,21 +63,10 @@ pub fn tilted_offset(
     let phi_ellipse = (-sin_gamma0 * theta.cos() * phi.cos() + cos_gamma0 * theta.sin())
         .atan2(theta.cos() * phi.sin());
 
-    println!(
-        "cos_gamma0: {}, sin_gamma0: {}, tan_gamma_delta: {}, cs: {}",
-        cos_gamma0, sin_gamma0, tan_gamma_delta, cs
-    );
-    println!(
-        "theta_ellipse: {}, phi_ellipse: {}",
-        theta_ellipse, phi_ellipse
-    );
-    // Call the ellipse view factor function with calculated parameters
-    diff_element_to_ellipse::tilted_offset(
+    diff_element_to_ellipse::tilted_center(
+        1.0,
         cs.sqrt(),
         tan_gamma_delta,
-        0.0,
-        0.0,
-        1.0,
         theta_ellipse,
         phi_ellipse,
     )

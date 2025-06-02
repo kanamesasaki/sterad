@@ -133,6 +133,7 @@ pub fn tilted_center(h: f64, a: f64, b: f64, theta: f64, phi: f64) -> Result<f64
 
     // transform phi to 0 <= phi <= PI/2
     phi %= 2.0 * PI;
+    phi += if phi < 0.0 { 2.0 * PI } else { 0.0 };
     phi = if phi > FRAC_PI_2 && phi <= PI {
         PI - phi
     } else if phi > PI && phi <= PI * 3.0 / 2.0 {
@@ -168,13 +169,13 @@ fn tilted_center_partial(
     if !(0.0..=FRAC_PI_2).contains(&phi) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "phi",
-            message: "phi must be between 0 and PI/2".to_string(),
+            message: format!("phi must be between 0 and PI/2, got {}", phi),
         });
     }
     if a <= b {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a, b",
-            message: "a must be greater than b".to_string(),
+            message: format!("a must be greater than b, got {}, {}", a, b),
         });
     }
 
@@ -270,7 +271,7 @@ fn integral_1(x0: f64, x1: f64, a2: f64) -> Result<f64, ViewFactorError> {
     if a2 <= 0.0 || a2 >= 1.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a2",
-            message: "a2 must be in the range: 0 < a2 < 1".to_string(),
+            message: format!("a2 must be in the range: 0 < a2 < 1, got {}", a2),
         });
     }
 
@@ -308,7 +309,7 @@ fn integral_cosx(x0: f64, x1: f64, a2: f64) -> Result<f64, ViewFactorError> {
     if a2 <= 0.0 || a2 >= 1.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a2",
-            message: "a2 must be in the range: 0 < a2 < 1".to_string(),
+            message: format!("a2 must be in the range: 0 < a2 < 1, got {}", a2),
         });
     }
 
@@ -333,7 +334,7 @@ fn integral_sinx(x0: f64, x1: f64, a2: f64) -> Result<f64, ViewFactorError> {
     if a2 <= 0.0 || a2 >= 1.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a2",
-            message: "a2 must be in the range: 0 < a2 < 1".to_string(),
+            message: format!("a2 must be in the range: 0 < a2 < 1, got {}", a2),
         });
     }
 
