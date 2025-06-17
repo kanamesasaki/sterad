@@ -59,7 +59,9 @@ pub fn tilted_offset(
             + a.powi(4) * z0.powi(2) * sin_gamma0.powi(2) / denom
             + 2.0 * a.powi(2) * b.powi(2) * cos_gamma0 * sin_gamma0 * x0 * z0 / denom);
 
-    let theta_ellipse = (-cos_gamma0 * theta.cos() * phi.cos() - sin_gamma0 * theta.sin()).acos();
+    // clamp the value to avoid rounding error issues
+    let theta_ellipse_cos = -cos_gamma0 * theta.cos() * phi.cos() - sin_gamma0 * theta.sin();
+    let theta_ellipse = theta_ellipse_cos.clamp(-1.0, 1.0).acos();
     let phi_ellipse = (-sin_gamma0 * theta.cos() * phi.cos() + cos_gamma0 * theta.sin())
         .atan2(theta.cos() * phi.sin());
 

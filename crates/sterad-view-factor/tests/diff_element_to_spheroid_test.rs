@@ -93,3 +93,28 @@ fn test_diff_element_to_spheroid_a05_r11() {
         test_diff_element_to_spheroid(a, b, &theta_vec, &phi_vec, x0, y0, z0, a_num, b_num);
     });
 }
+
+#[test]
+fn test_diff_element_to_spheroid_error_1() {
+    // Test case which caused rounding error in the past
+    let a: f64 = 6378.137;
+    let b: f64 = 6378.137;
+    let x0: f64 = -6547.906919525258;
+    let y0: f64 = 1998.755941055957;
+    let z0: f64 = 1298.0072850703743;
+    let theta: f64 = -0.18737198184735002;
+    let phi: f64 = -0.29626734891547124;
+
+    // Test the analytical solution
+    let vf_ana = diff_element_to_spheroid::tilted_offset(a, b, x0, y0, z0, theta, phi).unwrap();
+    let vf_num = diff_element_to_spheroid_numerical(a, b, x0, y0, z0, theta, phi, 2000, 2000);
+    let error = (vf_ana - vf_num).abs();
+
+    assert!(
+        error < 1e-6,
+        "Error too large: analytical={:.10}, numerical={:.10}, error={:.2e}",
+        vf_ana,
+        vf_num,
+        error
+    );
+}
