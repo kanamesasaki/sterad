@@ -34,19 +34,19 @@ pub fn parallel_center(h: f64, a: f64, b: f64) -> Result<f64, ViewFactorError> {
     if h <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "h",
-            message: "h must be greater than 0".to_string(),
+            message: format!("h must be greater than 0, got {}", h),
         });
     }
     if a <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a",
-            message: "r must be greater than 0".to_string(),
+            message: format!("a must be greater than 0, got {}", a),
         });
     }
     if b <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "b",
-            message: "r must be greater than 0".to_string(),
+            message: format!("b must be greater than 0, got {}", b),
         });
     }
     let a_over_h: f64 = a / h;
@@ -93,25 +93,25 @@ pub fn tilted_center(h: f64, a: f64, b: f64, theta: f64, phi: f64) -> Result<f64
     if h <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "h",
-            message: "h must be greater than 0".to_string(),
+            message: format!("h must be greater than 0, got {}", h),
         });
     }
     if a <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a",
-            message: "r must be greater than 0".to_string(),
+            message: format!("a must be greater than 0, got {}", a),
         });
     }
     if b <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "b",
-            message: "r must be greater than 0".to_string(),
+            message: format!("b must be greater than 0, got {}", b),
         });
     }
     if !(0.0..=PI).contains(&theta) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "theta",
-            message: "theta must be between 0 and PI".to_string(),
+            message: format!("theta must be between 0 and PI, got {}", theta),
         });
     }
 
@@ -409,25 +409,25 @@ pub fn tilted_offset(
     if a <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a",
-            message: "a must be greater than 0".to_string(),
+            message: format!("a must be greater than 0, got {}", a),
         });
     }
     if b <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "b",
-            message: "b must be greater than 0".to_string(),
+            message: format!("b must be greater than 0, got {}", b),
         });
     }
     if zc <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "zc",
-            message: "zc must be greater than 0".to_string(),
+            message: format!("zc must be greater than 0, got {}", zc),
         });
     }
     if !(0.0..=PI).contains(&theta) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "theta",
-            message: "theta must be between 0 and PI".to_string(),
+            message: format!("theta must be between 0 and PI, got {}", theta),
         });
     }
 
