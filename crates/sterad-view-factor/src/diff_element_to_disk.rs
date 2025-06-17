@@ -37,13 +37,13 @@ pub fn parallel_center(h: f64, r: f64) -> Result<f64, ViewFactorError> {
     if h <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "h",
-            message: "h must be greater than 0".to_string(),
+            message: format!("h must be greater than 0, got {}", h),
         });
     }
     if r <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "r",
-            message: "r must be greater than 0".to_string(),
+            message: format!("r must be greater than 0, got {}", r),
         });
     }
     let h_over_r = h / r;

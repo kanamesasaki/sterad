@@ -48,7 +48,10 @@ pub fn tilted_offset(
     let discriminant = -4.0 * p.powi(3) - 27.0 * q.powi(2);
     if discriminant < 0.0 {
         return Err(ViewFactorError::RuntimeError {
-            message: "Discriminant has to be zero or greater.".to_string(),
+            message: format!(
+                "Discriminant has to be zero or greater, got {}",
+                discriminant
+            ),
         });
     }
 

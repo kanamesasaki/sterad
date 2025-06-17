@@ -159,13 +159,13 @@ fn l2(
     if !(-PI..=PI).contains(&alpha0) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "alpha0",
-            message: "alpha0 has to be between -pi and pi".to_string(),
+            message: format!("alpha0 has to be between -pi and pi, got {}", alpha0),
         });
     }
     if !(-PI..=PI).contains(&alpha1) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "alpha1",
-            message: "alpha1 has to be between -pi and pi".to_string(),
+            message: format!("alpha1 has to be between -pi and pi, got {}", alpha1),
         });
     }
 
@@ -285,7 +285,10 @@ fn l4(x0: &Vector3f, x1: &Vector3f, omega: f64, gamma: f64) -> Result<f64, ViewF
     if (x0.z - x1.z).abs() > f64::EPSILON {
         return Err(ViewFactorError::InvalidInput {
             param_name: "x0.z, x1.z",
-            message: "x0.z and x1.z have to be equal".to_string(),
+            message: format!(
+                "x0.z and x1.z have to be equal, got x0.z={}, x1.z={}",
+                x0.z, x1.z
+            ),
         });
     }
     let h = x0.z;
@@ -355,50 +358,49 @@ pub fn sphericalcap(
     if !(0.0..=PI).contains(&omega) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "omega",
-            message: "omega must be between 0 and π".to_string(),
+            message: format!("omega must be between 0 and π, got {}", omega),
         });
     }
 
     if d <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "d",
-            message: "d must be positive".to_string(),
+            message: format!("d must be positive, got {}", d),
         });
     }
 
     if rs <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "rs",
-            message: "rs must be positive".to_string(),
+            message: format!("rs must be positive, got {}", rs),
         });
     }
 
     if !(0.0..=PI).contains(&phi) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "phi",
-            message: "phi must be between 0 and π".to_string(),
+            message: format!("phi must be between 0 and π, got {}", phi),
         });
     }
 
     if !(-PI..=PI).contains(&gamma) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "gamma",
-            message: "gamma must be between -π and π".to_string(),
+            message: format!("gamma must be between -π and π, got {}", gamma),
         });
     }
 
     if !(0.0..=PI).contains(&psi) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "psi",
-            message: "psi must be between 0 and π".to_string(),
+            message: format!("psi must be between 0 and π, got {}", psi),
         });
     }
 
     if rs >= d {
         return Err(ViewFactorError::InvalidInput {
             param_name: "rs, d",
-            message: "rs must be less than d (differential element must be outside the sphere)"
-                .to_string(),
+            message: format!("rs must be less than d (differential element must be outside the sphere), got rs={}, d={}", rs, d),
         });
     }
 
@@ -458,7 +460,7 @@ fn sphere(omega: f64, d: f64, rs: f64, gamma: f64) -> Result<(f64, i32), ViewFac
     if !(0.0..=PI).contains(&omega) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "omega",
-            message: "omega must be between 0 and π".to_string(),
+            message: format!("omega must be between 0 and π, got {}", omega),
         });
     }
 

@@ -36,19 +36,19 @@ pub fn parallel_corner(a: f64, b: f64, c: f64) -> Result<f64, ViewFactorError> {
     if a <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a",
-            message: "a must be greater than 0".to_string(),
+            message: format!("a must be greater than 0, got {}", a),
         });
     }
     if b <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "b",
-            message: "b must be greater than 0".to_string(),
+            message: format!("b must be greater than 0, got {}", b),
         });
     }
     if c <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "c",
-            message: "c must be greater than 0".to_string(),
+            message: format!("c must be greater than 0, got {}", c),
         });
     }
 
@@ -98,19 +98,19 @@ pub fn perpendicular_corner(a: f64, b: f64, c: f64) -> Result<f64, ViewFactorErr
     if a <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "a",
-            message: "a must be greater than 0".to_string(),
+            message: format!("a must be greater than 0, got {}", a),
         });
     }
     if b <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "b",
-            message: "b must be greater than 0".to_string(),
+            message: format!("b must be greater than 0, got {}", b),
         });
     }
     if c <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "c",
-            message: "c must be greater than 0".to_string(),
+            message: format!("c must be greater than 0, got {}", c),
         });
     }
 

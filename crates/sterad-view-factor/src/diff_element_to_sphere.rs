@@ -33,13 +33,13 @@ pub fn center(h: f64, r: f64) -> Result<f64, ViewFactorError> {
     if r <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "r",
-            message: "r must be greater than 0".to_string(),
+            message: format!("r must be greater than 0, got {}", r),
         });
     }
     if h <= r {
         return Err(ViewFactorError::InvalidInput {
             param_name: "h",
-            message: "h must be greater than r".to_string(),
+            message: format!("h must be greater than r ({}), got {}", r, h),
         });
     }
 
@@ -50,19 +50,19 @@ fn tilted_full(h: f64, r: f64, theta: f64) -> Result<f64, ViewFactorError> {
     if r <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "r",
-            message: "r must be greater than 0".to_string(),
+            message: format!("r must be greater than 0, got {}", r),
         });
     }
     if h <= r {
         return Err(ViewFactorError::InvalidInput {
             param_name: "h",
-            message: "h must be greater than r".to_string(),
+            message: format!("h must be greater than r ({}), got {}", r, h),
         });
     }
     if !(0.0..=PI).contains(&theta) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "theta",
-            message: "theta must be between 0 and PI".to_string(),
+            message: format!("theta must be between 0 and PI, got {}", theta),
         });
     }
 
@@ -74,19 +74,19 @@ fn tilted_partial(h: f64, r: f64, theta: f64) -> Result<f64, ViewFactorError> {
     if r <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "r",
-            message: "r must be greater than 0".to_string(),
+            message: format!("r must be greater than 0, got {}", r),
         });
     }
     if h <= r {
         return Err(ViewFactorError::InvalidInput {
             param_name: "h",
-            message: "h must be greater than r".to_string(),
+            message: format!("h must be greater than r ({}), got {}", r, h),
         });
     }
     if !(0.0..=PI).contains(&theta) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "theta",
-            message: "theta must be between 0 and PI".to_string(),
+            message: format!("theta must be between 0 and PI, got {}", theta),
         });
     }
 
@@ -135,19 +135,19 @@ pub fn tilted(h: f64, r: f64, theta: f64) -> Result<f64, ViewFactorError> {
     if r <= 0.0 {
         return Err(ViewFactorError::InvalidInput {
             param_name: "r",
-            message: "r must be greater than 0".to_string(),
+            message: format!("r must be greater than 0, got {}", r),
         });
     }
     if h <= r {
         return Err(ViewFactorError::InvalidInput {
             param_name: "h",
-            message: "h must be greater than r".to_string(),
+            message: format!("h must be greater than r, got {}", h),
         });
     }
     if !(0.0..=PI).contains(&theta) {
         return Err(ViewFactorError::InvalidInput {
             param_name: "theta",
-            message: "theta must be between 0 and PI".to_string(),
+            message: format!("theta must be between 0 and PI, got {}", theta),
         });
     }
 
